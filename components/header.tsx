@@ -21,38 +21,17 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Menu, Car, User } from "lucide-react";
+import { Menu, Car, User, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { UserMenu } from "@/components/auth/user-menu";
 
 export default function Header() {
   const pathname = usePathname();
-  const [isScrolled, setIsScrolled] = React.useState(false);
   const { isAuthenticated, user, isAdmin, isDealer } = useAuthStore();
 
-  React.useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 10) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, []);
-
   return (
-    <header
-      className={cn(
-        "sticky top-0 z-50 w-full transition-all duration-300",
-        isScrolled ? "bg-background/95 backdrop-blur-sm shadow-sm" : "bg-transparent"
-      )}
-    >
+    <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur-sm shadow-sm border-b">
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-4">
           <Sheet>
@@ -84,6 +63,19 @@ export default function Header() {
                 >
                   Catálogo
                 </Link>
+                
+                {/* Opción de subir auto para usuarios autenticados */}
+                {isAuthenticated && (
+                  <Link
+                    href="/upload-car"
+                    className={cn(
+                      "text-lg font-medium transition-colors hover:text-primary",
+                      pathname === "/upload-car" ? "text-primary" : "text-muted-foreground"
+                    )}
+                  >
+                    Subir Mi Auto
+                  </Link>
+                )}
                 
                 {/* Enlaces específicos por rol */}
                 {isAuthenticated && isAdmin() && (
@@ -213,6 +205,20 @@ export default function Header() {
                 </NavigationMenuContent>
               </NavigationMenuItem>
               
+              {/* Opción de subir auto para usuarios autenticados */}
+              {isAuthenticated && (
+                <NavigationMenuItem>
+                  <Link href="/upload-car" legacyBehavior passHref>
+                    <NavigationMenuLink
+                      className={navigationMenuTriggerStyle()}
+                      active={pathname === "/upload-car"}
+                    >
+                      Subir Auto
+                    </NavigationMenuLink>
+                  </Link>
+                </NavigationMenuItem>
+              )}
+              
               {/* Enlaces específicos por rol en el menú principal */}
               {isAuthenticated && isAdmin() && (
                 <NavigationMenuItem>
@@ -272,7 +278,7 @@ export default function Header() {
             <UserMenu />
           ) : (
             <>
-              <Button variant="outline\" size="sm\" asChild className="hidden sm:flex">
+              <Button variant="outline" size="sm" asChild className="hidden sm:flex">
                 <Link href="/auth/login">
                   <User className="h-4 w-4 mr-2" />
                   Iniciar Sesión

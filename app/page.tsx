@@ -31,6 +31,25 @@ export default function Home() {
         </div>
       </section>
       
+      {/* Sección de Subir Auto */}
+      <section className="w-full py-16 px-4 md:px-6 lg:px-8 bg-primary text-primary-foreground">
+        <div className="max-w-7xl mx-auto text-center">
+          <h2 className="text-2xl md:text-3xl font-bold mb-4">¿Tienes un Auto para Vender?</h2>
+          <p className="max-w-2xl mx-auto mb-8">
+            Publica tu vehículo en nuestra plataforma y llega a miles de compradores potenciales. 
+            Proceso simple, rápido y seguro.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button asChild size="lg" variant="secondary">
+              <Link href="/upload-car">Subir Mi Auto</Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary">
+              <Link href="/catalog">Ver Catálogo</Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+      
       {/* Por Qué Elegirnos */}
       <section className="w-full py-16 px-4 md:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
@@ -68,15 +87,15 @@ export default function Home() {
       </section>
       
       {/* Llamada a la Acción */}
-      <section className="w-full py-16 px-4 md:px-6 lg:px-8 bg-primary text-primary-foreground">
+      <section className="w-full py-16 px-4 md:px-6 lg:px-8 bg-muted">
         <div className="max-w-7xl mx-auto text-center">
           <h2 className="text-2xl md:text-3xl font-bold mb-4">¿Listo para Encontrar el Auto de Tus Sueños?</h2>
           <p className="max-w-2xl mx-auto mb-8">Únete a miles de clientes satisfechos que encontraron sus vehículos perfectos a través de nuestra plataforma.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild size="lg" variant="secondary">
+            <Button asChild size="lg">
               <Link href="/catalog">Explorar Catálogo</Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary">
+            <Button asChild size="lg" variant="outline">
               <Link href="/auth/register">Crear Cuenta</Link>
             </Button>
           </div>

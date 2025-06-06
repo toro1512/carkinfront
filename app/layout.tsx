@@ -11,8 +11,8 @@ import { Toaster } from '@/components/ui/toaster';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Catálogo Premium de Autos',
-  description: 'Descubre el auto de tus sueños en nuestro catálogo premium',
+  title: 'AutoElite - Catálogo Premium de Autos',
+  description: 'Descubre el auto de tus sueños en nuestro catálogo premium. Compra, vende y encuentra tu vehículo ideal.',
 };
 
 export default function RootLayout({
@@ -25,7 +25,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
+          defaultTheme="light"
           enableSystem
           disableTransitionOnChange
         >
