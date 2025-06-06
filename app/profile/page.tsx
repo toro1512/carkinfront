@@ -60,40 +60,9 @@ function ProfileContent() {
   };
 
   // Simular estado de verificación (en una app real vendría del backend)
-  const verificationStatus = 'pending'; // 'verified', 'pending', 'rejected', 'not_started'
+type VerificationStatus = 'verified' | 'pending' | 'rejected' | 'not_started';
 
-  const getVerificationBadge = () => {
-    switch (verificationStatus) {
-      case 'verified':
-        return (
-          <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-            <CheckCircle className="h-3 w-3 mr-1" />
-            Verificado
-          </Badge>
-        );
-      case 'pending':
-        return (
-          <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
-            <Clock className="h-3 w-3 mr-1" />
-            En Revisión
-          </Badge>
-        );
-      case 'rejected':
-        return (
-          <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
-            <AlertTriangle className="h-3 w-3 mr-1" />
-            Rechazado
-          </Badge>
-        );
-      default:
-        return (
-          <Badge variant="outline">
-            <FileText className="h-3 w-3 mr-1" />
-            Sin Verificar
-          </Badge>
-        );
-    }
-  };
+
 
   return (
     <div className="container py-8 px-4 md:px-6 lg:px-8 max-w-4xl mx-auto">
@@ -137,7 +106,7 @@ function ProfileContent() {
                     <Badge className={getRoleBadgeColor(user.role)}>
                       {getRoleLabel(user.role)}
                     </Badge>
-                    {getVerificationBadge()}
+                    
                   </div>
                 </div>
               </div>
@@ -199,63 +168,7 @@ function ProfileContent() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {verificationStatus === 'verified' ? (
-                <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <CheckCircle className="h-6 w-6 text-green-600" />
-                  <div>
-                    <h3 className="font-semibold text-green-800">Cuenta Verificada</h3>
-                    <p className="text-sm text-green-700">
-                      Tu cuenta ha sido verificada exitosamente. Tienes acceso completo a todas las funcionalidades.
-                    </p>
-                  </div>
-                </div>
-              ) : verificationStatus === 'pending' ? (
-                <div className="flex items-center gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <Clock className="h-6 w-6 text-yellow-600" />
-                  <div>
-                    <h3 className="font-semibold text-yellow-800">Verificación en Proceso</h3>
-                    <p className="text-sm text-yellow-700">
-                      Tu solicitud de verificación está siendo revisada. Te contactaremos pronto con el resultado.
-                    </p>
-                  </div>
-                </div>
-              ) : verificationStatus === 'rejected' ? (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
-                    <AlertTriangle className="h-6 w-6 text-red-600" />
-                    <div>
-                      <h3 className="font-semibold text-red-800">Verificación Rechazada</h3>
-                      <p className="text-sm text-red-700">
-                        Tu solicitud de verificación fue rechazada. Por favor, revisa los datos y vuelve a intentarlo.
-                      </p>
-                    </div>
-                  </div>
-                  <Button asChild className="w-full">
-                    <Link href="/profile/verification">
-                      <FileText className="h-4 w-4 mr-2" />
-                      Reintentar Verificación
-                    </Link>
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <FileText className="h-6 w-6 text-blue-600" />
-                    <div>
-                      <h3 className="font-semibold text-blue-800">Verificación Pendiente</h3>
-                      <p className="text-sm text-blue-700">
-                        Completa tu verificación para acceder a funcionalidades adicionales y aumentar tu credibilidad.
-                      </p>
-                    </div>
-                  </div>
-                  <Button asChild className="w-full">
-                    <Link href="/profile/verification">
-                      <Shield className="h-4 w-4 mr-2" />
-                      Iniciar Verificación
-                    </Link>
-                  </Button>
-                </div>
-              )}
+               
             </CardContent>
           </Card>
 
@@ -340,15 +253,11 @@ function ProfileContent() {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Perfil completado</span>
-                <span className="font-semibold">
-                  {verificationStatus === 'verified' ? '100%' : '75%'}
-                </span>
+                
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Estado</span>
-                <Badge variant={verificationStatus === 'verified' ? 'default' : 'secondary'}>
-                  {verificationStatus === 'verified' ? 'Verificado' : 'Pendiente'}
-                </Badge>
+                
               </div>
             </CardContent>
           </Card>
