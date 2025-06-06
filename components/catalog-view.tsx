@@ -329,7 +329,7 @@ export function CatalogView() {
           
           <div className="flex items-center gap-1">
             {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-              let page;
+              let page:number;
               if (totalPages <= 5) {
                 page = i + 1;
               } else if (currentPage <= 3) {
