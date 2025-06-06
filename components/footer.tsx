@@ -9,7 +9,7 @@ export default function Footer() {
           <div>
             <div className="flex items-center gap-2 mb-4">
               <Car className="h-6 w-6" />
-              <span className="font-bold text-lg">AutoElite</span>
+              <span className="font-bold text-lg">CarsKing</span>
             </div>
             <p className="text-muted-foreground mb-4">
               Descubre tu vehículo perfecto con nuestra selección premium de autos.
@@ -116,17 +116,17 @@ export default function Footer() {
           <div>
             <h3 className="font-semibold text-base mb-4">Contacto</h3>
             <address className="not-italic text-muted-foreground space-y-2">
-              <p>Av. Automotriz 123</p>
-              <p>Ciudad del Auto, CA 12345</p>
-              <p>México</p>
+              <p>Av. La Rambla 123</p>
+              <p>Ciudad de Madrid, CA 12345</p>
+              <p>España</p>
               <p className="pt-2">
-                <a href="tel:+525551234567" className="hover:text-primary">
-                  (55) 5123-4567
+                <a href="tel:+345551234567" className="hover:text-primary">
+                  (34) 5123-4567
                 </a>
               </p>
               <p>
-                <a href="mailto:info@autoelite.com" className="hover:text-primary">
-                  info@autoelite.com
+                <a href="mailto:info@CarsKing.com" className="hover:text-primary">
+                  info@CarsKing.com
                 </a>
               </p>
             </address>
@@ -134,7 +134,7 @@ export default function Footer() {
         </div>
         <div className="border-t mt-10 pt-6 flex flex-col sm:flex-row justify-between items-center">
           <p className="text-muted-foreground text-sm">
-            &copy; {new Date().getFullYear()} AutoElite. Todos los derechos reservados.
+            &copy; {new Date().getFullYear()} CarsKing. Todos los derechos reservados.
           </p>
           <div className="flex space-x-6 mt-4 sm:mt-0">
             <Link href="/privacy" className="text-muted-foreground hover:text-primary text-sm">

@@ -135,6 +135,12 @@ export function UserMenu() {
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
+  <Link href="/profile/verification" className="cursor-pointer">
+    <Shield className="mr-2 h-4 w-4" />
+    <span>Verificar Cuenta</span>
+  </Link>
+</DropdownMenuItem>
+            <DropdownMenuItem asChild>
               <Link href="/inquiries" className="cursor-pointer">
                 <FileText className="mr-2 h-4 w-4" />
                 <span>Mis Consultas</span>

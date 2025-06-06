@@ -12,7 +12,7 @@ function AdminDashboardContent() {
       <div className="mb-8">
         <h1 className="text-3xl md:text-4xl font-bold mb-4">Panel de Administración</h1>
         <p className="text-muted-foreground max-w-3xl">
-          Gestiona todos los aspectos de AutoElite desde este panel centralizado.
+          Gestiona todos los aspectos de CarsKing desde este panel centralizado.
         </p>
       </div>
 

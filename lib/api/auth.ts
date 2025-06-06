@@ -7,7 +7,7 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 const mockUsers: User[] = [
   {
     id: '1',
-    email: 'admin@autoelite.com',
+    email: 'admin@CarsKing.com',
     firstName: 'Carlos',
     lastName: 'Administrador',
     role: 'admin',
@@ -17,7 +17,7 @@ const mockUsers: User[] = [
   },
   {
     id: '2',
-    email: 'dealer@autoelite.com',
+    email: 'dealer@CarsKing.com',
     firstName: 'María',
     lastName: 'Vendedora',
     role: 'dealer',
@@ -72,8 +72,8 @@ export const authAPI = {
     // Simular validación de contraseña
     // En una app real, esto se haría en el backend de forma segura
     const validPasswords: Record<string, string> = {
-      'admin@autoelite.com': 'admin123',
-      'dealer@autoelite.com': 'dealer123',
+      'admin@CarsKing.com': 'admin123',
+      'dealer@CarsKing.com': 'dealer123',
       'cliente@ejemplo.com': 'cliente123',
     };
     

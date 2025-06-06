@@ -4,6 +4,7 @@ import { Inter } from 'next/font/google';
 import { ThemeProvider } from '@/components/theme-provider';
 import { AuthProvider } from '@/components/providers/auth-provider';
 import { CarsProvider } from '@/components/providers/cars-provider';
+import { AuthProvidermio } from "@/hooks/use-auth"
 import Header from '@/components/header';
 import Footer from '@/components/footer';
 import { Toaster } from '@/components/ui/toaster';
@@ -11,7 +12,7 @@ import { Toaster } from '@/components/ui/toaster';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'AutoElite - Catálogo Premium de Autos',
+  title: 'CarsKing - Catálogo Premium de Autos',
   description: 'Descubre el auto de tus sueños en nuestro catálogo premium. Compra, vende y encuentra tu vehículo ideal.',
 };
 
@@ -30,6 +31,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
+           <AuthProvidermio>
             <CarsProvider>
               <div className="flex flex-col min-h-screen">
                 <Header />
@@ -38,6 +40,7 @@ export default function RootLayout({
               </div>
               <Toaster />
             </CarsProvider>
+           </AuthProvidermio>
           </AuthProvider>
         </ThemeProvider>
       </body>

@@ -5,6 +5,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
+import Image from 'next/image';
+import logo from '@/public/logoisocol.png';
+import logodos from '@/public/logonegr.png';
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -21,7 +24,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Menu, Car, User, Upload } from "lucide-react";
+import { Menu, User, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { UserMenu } from "@/components/auth/user-menu";
@@ -129,14 +132,30 @@ export default function Header() {
           </Sheet>
 
           <Link href="/" className="hidden sm:flex items-center gap-2">
-            <Car className="h-6 w-6" />
-            <span className="font-bold text-xl">AutoElite</span>
+            <div className="h-16 w-16  flex items-center justify-center">
+  <Image 
+    src={logo}
+    alt="Logo"
+    width={100}  // Ajusta según necesidad
+    height={100}
+    className="h-15 w-15 object-contain" // Mantienes las mismas dimensiones
+  />
+</div>
+            <span className="font-bold text-xl">CarsKing</span>
           </Link>
 
           {/* Logo móvil */}
           <Link href="/" className="sm:hidden flex items-center gap-1">
-            <Car className="h-5 w-5" />
-            <span className="font-bold text-lg">AutoElite</span>
+            <div className="h-16 w-16 flex items-center justify-center">
+  <Image 
+    src={logo}
+    alt="Logo"
+    width={100}  // Ajusta según necesidad
+    height={100}
+    className="h-14 w-14 object-contain" // Mantienes las mismas dimensiones
+  />
+</div>
+            <span className="font-bold text-lg">CarsKing</span>
           </Link>
 
           <NavigationMenu className="hidden lg:flex">
@@ -161,7 +180,15 @@ export default function Header() {
                           className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
                           href="/catalog"
                         >
-                          <Car className="h-6 w-6" />
+                          <div className="h-12 w-12 bg-primary/10 rounded-full flex items-center justify-center">
+  <Image 
+    src={logo}
+    alt="Logo"
+    width={24}  // Ajusta según necesidad
+    height={24}
+    className="h-6 w-6 object-contain" // Mantienes las mismas dimensiones
+  />
+</div>
                           <div className="mb-2 mt-4 text-lg font-medium">
                             Todos los Vehículos
                           </div>
