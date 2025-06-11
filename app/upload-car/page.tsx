@@ -455,7 +455,7 @@ useEffect(() => {
                 <span>Progreso de fotos</span>
                 <span>{mandatoryPhotosTakenCount}/{mandatoryTemplatesCount}</span>
               </div>
-              <div className="w-full bg-muted rounded-full h-2">
+              <div className="w-full bg-muted rounded-full h-2 mb-4">
                 <div 
                   className="bg-primary h-2 rounded-full transition-all duration-300 mb-2" 
                   style={{ width: `${(mandatoryPhotosTakenCount/mandatoryTemplatesCount) * 100}%` }}

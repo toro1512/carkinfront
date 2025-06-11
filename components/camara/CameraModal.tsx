@@ -139,16 +139,32 @@ const CameraModal: React.FC<CameraModalProps> = ({ isOpen, onClose, onCapture, t
         )}
 
         <div className="relative w-full aspect-video bg-gray-900 rounded-md overflow-hidden mb-4 border border-gray-300">
-          <video ref={videoRef} autoPlay playsInline className={`w-full h-full object-cover ${isCameraReady ? 'block' : 'hidden'}`}></video>
+  <video 
+    ref={videoRef} 
+    autoPlay 
+    playsInline 
+    className={`w-full h-full object-cover ${isCameraReady ? 'block' : 'hidden'}`}
+  ></video>
           
-          {isCameraReady && template?.guidanceImage && (
-            <Image
-              src={template.guidanceImage}
-              alt={`${template.label} guidance`}
-              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 max-w-[90%] max-h-[90%] opacity-40 pointer-events-none object-contain"
-              aria-hidden="true"
-            />
-          )}
+        {isCameraReady && template?.guidanceImage && (
+    <div className="absolute inset-0 flex items-center justify-center">
+      <div className="relative" style={{ 
+        width: 'min(90vw, 90%)', 
+        height: 'min(90vh, 90%)',
+        aspectRatio: 'auto'
+      }}>
+        <Image
+          src={template.guidanceImage}
+          alt={`${template.label} guidance`}
+          className="opacity-40 pointer-events-none object-contain w-full h-full"
+          width={0}
+          height={0}
+          sizes="100vw"
+          style={{ width: '100%', height: '100%' }}
+        />
+      </div>
+    </div>
+  )}
 
           {!isCameraReady && !error && (
              <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
@@ -189,3 +205,145 @@ const CameraModal: React.FC<CameraModalProps> = ({ isOpen, onClose, onCapture, t
 };
 
 export default CameraModal;
+
+/*
+// hooks/useInactivityTimer.ts
+import { useEffect, useState } from 'react';
+
+export const useInactivityTimer = (logoutCallback: () => void, timeoutMinutes: number = 5) => {
+  const [showWarning, setShowWarning] = useState(false);
+  const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
+  const [warningTimeoutId, setWarningTimeoutId] = useState<NodeJS.Timeout | null>(null);
+
+  const warningTime = 1 * 60 * 1000; // 1 minuto de advertencia
+  const logoutTime = timeoutMinutes * 60 * 1000;
+
+  const resetTimer = () => {
+    if (timeoutId) clearTimeout(timeoutId);
+    if (warningTimeoutId) clearTimeout(warningTimeoutId);
+    
+    setShowWarning(false);
+    
+    const newWarningTimeout = setTimeout(() => {
+      setShowWarning(true);
+      
+      const newLogoutTimeout = setTimeout(() => {
+        logoutCallback();
+      }, warningTime);
+      
+      setWarningTimeoutId(newLogoutTimeout);
+    }, logoutTime - warningTime);
+    
+    setTimeoutId(newWarningTimeout);
+  };
+
+  const extendSession = () => {
+    setShowWarning(false);
+    resetTimer();
+  };
+
+  useEffect(() => {
+    const events = ['mousedown', 'keydown', 'scroll', 'touchstart', 'mousemove'];
+    
+    const handleActivity = () => resetTimer();
+
+    events.forEach(event => window.addEventListener(event, handleActivity));
+    resetTimer();
+
+    return () => {
+      events.forEach(event => window.removeEventListener(event, handleActivity));
+      if (timeoutId) clearTimeout(timeoutId);
+      if (warningTimeoutId) clearTimeout(warningTimeoutId);
+    };
+  }, []);
+
+  return { showWarning, extendSession };
+};
+
+
+/////////////////////////////////////
+
+// components/inactivity-modal.tsx
+'use client';
+
+import { useEffect } from 'react';
+import { Button } from './ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from './ui/dialog';
+
+export function InactivityModal({
+  showWarning,
+  onExtend,
+  onLogout,
+}: {
+  showWarning: boolean;
+  onExtend: () => void;
+  onLogout: () => void;
+}) {
+  return (
+    <Dialog open={showWarning} onOpenChange={(open) => !open && onExtend()}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Sesión inactiva</DialogTitle>
+          <DialogDescription>
+            Su sesión se cerrará automáticamente en 1 minuto debido a inactividad.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter className="gap-2 sm:gap-0">
+          <Button variant="outline" onClick={onLogout}>
+            Cerrar sesión
+          </Button>
+          <Button onClick={onExtend}>Permanecer conectado</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+////////
+// app/layout.tsx
+import { useRouter } from 'next/navigation';
+import { useInactivityTimer } from '@/hooks/useInactivityTimer';
+import { InactivityModal } from '@/components/inactivity-modal';
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const router = useRouter();
+  
+  const handleLogout = () => {
+    // Implementa tu lógica de logout aquí
+    console.log('Cerrando sesión por inactividad');
+    router.push('/login');
+  };
+
+  const { showWarning, extendSession } = useInactivityTimer(handleLogout, 5);
+
+  return (
+    <html lang="es">
+      <body>*/
+//        {/* Todos tus providers y wrappers existentes */
+/*        <YourProviders>
+          <YourOtherWrappers>
+            {children}
+          </YourOtherWrappers>
+        </YourProviders>
+        
+        {/* El modal de inactividad (fuera de cualquier wrapper) */
+/*        <InactivityModal 
+          showWarning={showWarning}
+          onExtend={extendSession}
+          onLogout={handleLogout}
+        />
+      </body>
+    </html>
+  );
+}
+*/
