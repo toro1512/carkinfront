@@ -1,6 +1,6 @@
 import { PhotoTemplate } from '@/types/camara';
 
-export const photoGuides: PhotoTemplate[] = [
+export const PHOTO_TEMPLATES: PhotoTemplate[] = [
   { id: 1, label: "Frontal",
     description: "Toma una foto de frente, mirando directamente a la cámara.", 
     required: true,referenceImage: 'https://images.pexels.com/photos/244206/pexels-photo-244206.jpeg', guidanceImage: "/assets/png-frontal.png" },
@@ -15,3 +15,76 @@ export const photoGuides: PhotoTemplate[] = [
   { id: 10, label: "Contrapicado Ligero", referenceImage: 'https://images.pexels.com/photos/2127039/pexels-photo-2127039.jpeg', description: "Toma una foto desde un ángulo ligeramente bajo.", required: true, guidanceImage: "/assets/png-transparent.png" },
   
 ];
+/*
+const photoGuides: PhotoGuide[] = [
+  {
+    id: 'front',
+    title: 'Vista Frontal',
+    description: 'Toma la foto desde el frente del vehículo, asegúrate de capturar toda la parte delantera',
+    referenceImage: 'https://images.pexels.com/photos/1545743/pexels-photo-1545743.jpeg',
+    required: true
+  },
+  {
+    id: 'rear',
+    title: 'Vista Trasera',
+    description: 'Fotografía la parte trasera completa del vehículo',
+    referenceImage: 'https://images.pexels.com/photos/244206/pexels-photo-244206.jpeg',
+    required: true
+  },
+  {
+    id: 'left-side',
+    title: 'Lado Izquierdo',
+    description: 'Captura el perfil izquierdo completo del vehículo',
+    referenceImage: 'https://images.pexels.com/photos/2127039/pexels-photo-2127039.jpeg',
+    required: true
+  },
+  {
+    id: 'right-side',
+    title: 'Lado Derecho',
+    description: 'Fotografía el perfil derecho completo del vehículo',
+    referenceImage: 'https://images.pexels.com/photos/3802510/pexels-photo-3802510.jpeg',
+    required: true
+  },
+  {
+    id: 'interior-front',
+    title: 'Interior Delantero',
+    description: 'Toma una foto del tablero y asientos delanteros',
+    referenceImage: 'https://images.pexels.com/photos/6894428/pexels-photo-6894428.jpeg',
+    required: true
+  },
+  {
+    id: 'interior-rear',
+    title: 'Interior Trasero',
+    description: 'Fotografía los asientos traseros y espacio interior',
+    referenceImage: 'https://images.pexels.com/photos/1104768/pexels-photo-1104768.jpeg',
+    required: true
+  },
+  {
+    id: 'engine',
+    title: 'Motor',
+    description: 'Abre el capó y fotografía el motor',
+    referenceImage: 'https://images.pexels.com/photos/1231643/pexels-photo-1231643.jpeg',
+    required: true
+  },
+  {
+    id: 'trunk',
+    title: 'Maletero/Cajuela',
+    description: 'Abre y fotografía el espacio de carga',
+    referenceImage: 'https://images.pexels.com/photos/3729464/pexels-photo-3729464.jpeg',
+    required: true
+  },
+  {
+    id: 'wheels',
+    title: 'Ruedas/Llantas',
+    description: 'Toma una foto cercana de las ruedas y llantas',
+    referenceImage: 'https://images.pexels.com/photos/2676096/pexels-photo-2676096.jpeg',
+    required: true
+  },
+  {
+    id: 'dashboard',
+    title: 'Tablero/Odómetro',
+    description: 'Fotografía el tablero mostrando el kilometraje',
+    referenceImage: 'https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg',
+    required: true
+  }
+]; */

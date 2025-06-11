@@ -18,6 +18,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
+//IMPORTACIONES DE LA CAMARA
+import { PhotoTemplate, CapturedPhoto } from '@/types/camara';
+import { PHOTO_TEMPLATES } from '@/constants/constantes';
+import PhotoSlot from '@/components/camara/PhotoSlot';
+import CameraModal from '@/components/camara/CameraModal';
+// FIN CAMARA 
 import Image from 'next/image';
 import { 
   Camera, 
@@ -47,100 +53,57 @@ interface VehicleData {
   mileage: number;
 }
 
-interface PhotoGuide {
-  id: string;
-  title: string;
-  description: string;
-  referenceImage: string;
-  required: boolean;
-}
-
-const photoGuides: PhotoGuide[] = [
-  {
-    id: 'front',
-    title: 'Vista Frontal',
-    description: 'Toma la foto desde el frente del vehículo, asegúrate de capturar toda la parte delantera',
-    referenceImage: 'https://images.pexels.com/photos/1545743/pexels-photo-1545743.jpeg',
-    required: true
-  },
-  {
-    id: 'rear',
-    title: 'Vista Trasera',
-    description: 'Fotografía la parte trasera completa del vehículo',
-    referenceImage: 'https://images.pexels.com/photos/244206/pexels-photo-244206.jpeg',
-    required: true
-  },
-  {
-    id: 'left-side',
-    title: 'Lado Izquierdo',
-    description: 'Captura el perfil izquierdo completo del vehículo',
-    referenceImage: 'https://images.pexels.com/photos/2127039/pexels-photo-2127039.jpeg',
-    required: true
-  },
-  {
-    id: 'right-side',
-    title: 'Lado Derecho',
-    description: 'Fotografía el perfil derecho completo del vehículo',
-    referenceImage: 'https://images.pexels.com/photos/3802510/pexels-photo-3802510.jpeg',
-    required: true
-  },
-  {
-    id: 'interior-front',
-    title: 'Interior Delantero',
-    description: 'Toma una foto del tablero y asientos delanteros',
-    referenceImage: 'https://images.pexels.com/photos/6894428/pexels-photo-6894428.jpeg',
-    required: true
-  },
-  {
-    id: 'interior-rear',
-    title: 'Interior Trasero',
-    description: 'Fotografía los asientos traseros y espacio interior',
-    referenceImage: 'https://images.pexels.com/photos/1104768/pexels-photo-1104768.jpeg',
-    required: true
-  },
-  {
-    id: 'engine',
-    title: 'Motor',
-    description: 'Abre el capó y fotografía el motor',
-    referenceImage: 'https://images.pexels.com/photos/1231643/pexels-photo-1231643.jpeg',
-    required: true
-  },
-  {
-    id: 'trunk',
-    title: 'Maletero/Cajuela',
-    description: 'Abre y fotografía el espacio de carga',
-    referenceImage: 'https://images.pexels.com/photos/3729464/pexels-photo-3729464.jpeg',
-    required: true
-  },
-  {
-    id: 'wheels',
-    title: 'Ruedas/Llantas',
-    description: 'Toma una foto cercana de las ruedas y llantas',
-    referenceImage: 'https://images.pexels.com/photos/2676096/pexels-photo-2676096.jpeg',
-    required: true
-  },
-  {
-    id: 'dashboard',
-    title: 'Tablero/Odómetro',
-    description: 'Fotografía el tablero mostrando el kilometraje',
-    referenceImage: 'https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg',
-    required: true
-  }
-];
-
 function UploadCarContent() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [plateLoading, setPlateLoading] = useState(false);
-  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
-  const [isCapturing, setIsCapturing] = useState(false);
-  const [cameraPermission, setCameraPermission] = useState<'granted' | 'denied' | 'prompt' | 'checking'>('checking');
-  const [cameraError, setCameraError] = useState<string | null>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
+  // manejo camara 
+  const [capturedPhotos, setCapturedPhotos] = useState<CapturedPhoto[]>([]);
+  const [isCameraModalOpen, setIsCameraModalOpen] = useState(false);
+  const [currentTemplateForCapture, setCurrentTemplateForCapture] = useState<PhotoTemplate | null>(null);
+  const [allMandatoryDone, setAllMandatoryDone] = useState(false);
+  const mandatoryTemplatesCount = PHOTO_TEMPLATES.filter(t => t.required).length;
 
+    ///////////////////// MANEJO Y LOGICA DAMARA//////////////////////////////////////////////////
+useEffect(() => {
+    const takenMandatoryPhotos = capturedPhotos.filter(p => 
+      PHOTO_TEMPLATES.some(mt => mt.id === p.templateId && mt.required)
+    );
+    setAllMandatoryDone(takenMandatoryPhotos.length === mandatoryTemplatesCount);
+  }, [capturedPhotos, mandatoryTemplatesCount]);
+
+  const handleOpenCapture = useCallback((template: PhotoTemplate) => {
+    setCurrentTemplateForCapture(template);
+    setIsCameraModalOpen(true);
+  }, []);
+
+  const handleCloseCaptureModal = useCallback(() => {
+    setIsCameraModalOpen(false);
+    setCurrentTemplateForCapture(null);
+  }, []);
+
+  const handlePhotoCaptured = useCallback((dataUrl: string) => {
+    if (currentTemplateForCapture) {
+      setCapturedPhotos(prevPhotos => {
+        const existingPhotoIndex = prevPhotos.findIndex(p => p.templateId === currentTemplateForCapture.id);
+        if (existingPhotoIndex > -1) {
+          const updatedPhotos = [...prevPhotos];
+          updatedPhotos[existingPhotoIndex] = { templateId: currentTemplateForCapture.id, imageUrl: dataUrl };
+          return updatedPhotos;
+        }
+        return [...prevPhotos, { templateId: currentTemplateForCapture.id, imageUrl: dataUrl }];
+      });
+    }
+    handleCloseCaptureModal();
+  }, [currentTemplateForCapture, handleCloseCaptureModal]);
+
+  const handleDeletePhoto = useCallback((templateId: number) => {
+    setCapturedPhotos(prevPhotos => prevPhotos.filter(p => p.templateId !== templateId));
+  }, []);
+  
+
+  // ///////////////////////////////////////////////////////////////////////////////////////////
   // Estado del formulario
   const [formData, setFormData] = useState({
     plate: '',
@@ -151,85 +114,10 @@ function UploadCarContent() {
     location: ''
   });
 
+
   // Datos del vehículo obtenidos por placa
   const [vehicleData, setVehicleData] = useState<VehicleData | null>(null);
   
-  // Fotos capturadas
-  const [capturedPhotos, setCapturedPhotos] = useState<{ [key: string]: string }>({});
-
-  // Verificar permisos de cámara al cargar el componente
-  useEffect(() => {
-    checkCameraPermissions();
-  }, []);
-
-  const checkCameraPermissions = async () => {
-    try {
-      // Verificar si la API de permisos está disponible
-      if ('permissions' in navigator) {
-        const permission = await navigator.permissions.query({ name: 'camera' as PermissionName });
-        setCameraPermission(permission.state as 'granted' | 'denied' | 'prompt');
-        
-        // Escuchar cambios en los permisos
-        permission.onchange = () => {
-          setCameraPermission(permission.state as 'granted' | 'denied' | 'prompt');
-        };
-      } else {
-        // Si no hay API de permisos, intentar acceso directo
-        setCameraPermission('prompt');
-      }
-    } catch (error) {
-      console.error('Error checking camera permissions:', error);
-      setCameraPermission('prompt');
-    }
-  };
-
-  const requestCameraPermission = async () => {
-    try {
-      setCameraError(null);
-      
-      // Intentar acceder a la cámara para solicitar permisos
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { 
-          facingMode: ['environment', 'user']
-        }
-      });
-      
-      // Si llegamos aquí, los permisos fueron concedidos
-      setCameraPermission('granted');
-      
-      // Detener el stream inmediatamente ya que solo queríamos verificar permisos
-      stream.getTracks().forEach(track => track.stop());
-      
-      toast({
-        title: "¡Permisos concedidos!",
-        description: "Ahora puedes tomar fotos de tu vehículo"
-      });
-      
-      return true;
-    } catch (error: any) {
-      console.error('Camera permission error:', error);
-      
-      if (error.name === 'NotAllowedError') {
-        setCameraPermission('denied');
-        setCameraError('Permisos de cámara denegados. Por favor, permite el acceso a la cámara en la configuración de tu navegador.');
-      } else if (error.name === 'NotFoundError') {
-        setCameraError('No se encontró ninguna cámara en tu dispositivo.');
-      } else if (error.name === 'NotSupportedError') {
-        setCameraError('Tu navegador no soporta el acceso a la cámara.');
-      } else {
-        setCameraError('Error al acceder a la cámara. Verifica que tu dispositivo tenga una cámara disponible.');
-      }
-      
-      toast({
-        title: "Error de permisos",
-        description: "No se pudo acceder a la cámara. Verifica los permisos en tu navegador.",
-        variant: "destructive"
-      });
-      
-      return false;
-    }
-  };
-
   // Simular llamada a API para obtener datos del vehículo por placa
   const fetchVehicleData = async (plate: string): Promise<VehicleData> => {
     // Simular delay de API
@@ -278,155 +166,6 @@ function UploadCarContent() {
       setPlateLoading(false);
     }
   };
-
-  const startCamera = async () => {
-    try {
-      setCameraError(null);
-      
-      // Verificar permisos primero
-      if (cameraPermission === 'denied') {
-        setCameraError('Los permisos de cámara están denegados. Por favor, permite el acceso en la configuración de tu navegador.');
-        return;
-      }
-      
-      if (cameraPermission === 'prompt') {
-        const hasPermission = await requestCameraPermission();
-        if (!hasPermission) return;
-      }
-      
-      // Intentar con múltiples configuraciones de cámara
-      const constraints = [
-        // Primero intentar con cámara trasera
-        { video: { facingMode: { exact: 'environment' } } },
-        // Si falla, intentar con cualquier cámara trasera
-        { video: { facingMode: 'environment' } },
-        // Si falla, usar cámara frontal
-        { video: { facingMode: 'user' } },
-        // Como último recurso, usar cualquier cámara disponible
-        { video: true }
-      ];
-
-      let stream: MediaStream | null = null;
-      let lastError: Error | null = null;
-
-      for (const constraint of constraints) {
-        try {
-          stream = await navigator.mediaDevices.getUserMedia(constraint);
-          break; // Si tiene éxito, salir del bucle
-        } catch (error: any) {
-          lastError = error;
-          console.warn('Failed to get camera with constraint:', constraint, error);
-          continue; // Intentar con la siguiente configuración
-        }
-      }
-
-      if (!stream) {
-        throw lastError || new Error('No se pudo acceder a ninguna cámara');
-      }
-      
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        streamRef.current = stream;
-        
-        // Esperar a que el video esté listo
-        videoRef.current.onloadedmetadata = () => {
-          videoRef.current?.play();
-        };
-      }
-      setIsCapturing(true);
-      setCameraPermission('granted');
-      
-    } catch (error: any) {
-      console.error('Camera start error:', error);
-      
-      if (error.name === 'NotAllowedError') {
-        setCameraPermission('denied');
-        setCameraError('Permisos de cámara denegados. Permite el acceso a la cámara para continuar.');
-      } else if (error.name === 'NotFoundError') {
-        setCameraError('No se encontró ninguna cámara en tu dispositivo.');
-      } else if (error.name === 'TimeoutError') {
-        setCameraError('Tiempo de espera agotado al iniciar la cámara. Inténtalo de nuevo.');
-      } else {
-        setCameraError('Error al iniciar la cámara. Verifica que no esté siendo usada por otra aplicación.');
-      }
-      
-      toast({
-        title: "Error de cámara",
-        description: cameraError || "No se pudo acceder a la cámara",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const stopCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
-    }
-    if (videoRef.current) {
-      videoRef.current.srcObject = null;
-    }
-    setIsCapturing(false);
-    setCameraError(null);
-  };
-
-  const capturePhoto = () => {
-    if (!videoRef.current || !canvasRef.current) return;
-
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    const context = canvas.getContext('2d');
-
-    if (!context) return;
-
-    // Configurar el canvas con las dimensiones del video
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-
-    // Dibujar el frame actual del video en el canvas
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    // Convertir a base64
-    const photoDataUrl = canvas.toDataURL('image/jpeg', 0.8);
-    
-    // Guardar la foto
-    const currentGuide = photoGuides[currentPhotoIndex];
-    setCapturedPhotos(prev => ({
-      ...prev,
-      [currentGuide.id]: photoDataUrl
-    }));
-
-    // Parar la cámara
-    stopCamera();
-
-    toast({
-      title: "¡Foto capturada!",
-      description: `${currentGuide.title} guardada exitosamente`
-    });
-  };
-
-  const retakePhoto = (photoId: string) => {
-    setCapturedPhotos(prev => {
-      const newPhotos = { ...prev };
-      delete newPhotos[photoId];
-      return newPhotos;
-    });
-    
-    // Encontrar el índice de la foto para retomarla
-    const photoIndex = photoGuides.findIndex(guide => guide.id === photoId);
-    if (photoIndex !== -1) {
-      setCurrentPhotoIndex(photoIndex);
-      startCamera();
-    }
-  };
-
-  const openCameraSettings = () => {
-    toast({
-      title: "Configuración de cámara",
-      description: "Ve a la configuración de tu navegador > Privacidad y seguridad > Configuración del sitio > Cámara, y permite el acceso para este sitio.",
-    });
-  };
-
   // Validar si el formulario está completo
   const isFormValid = () => {
     const requiredFields = [
@@ -440,11 +179,13 @@ function UploadCarContent() {
     
     const allFieldsFilled = requiredFields.every(field => field.trim() !== '');
     const vehicleDataExists = vehicleData !== null;
-    const allPhotosCapture = photoGuides.every(guide => 
-      guide.required ? capturedPhotos[guide.id] : true
-    );
-    
-    return allFieldsFilled && vehicleDataExists && allPhotosCapture;
+   /*
+     crear variable para foto completas y revisar... esta pendiente de la validacion
+   
+   ojoooooooooooooooooooooooooooooooooooooooooooooooooooooo
+   
+   */
+    return allFieldsFilled && vehicleDataExists ;
   };
 
   // Preparar datos para envío
@@ -463,7 +204,10 @@ function UploadCarContent() {
     if (vehicleData) {
       uploadData.append('vehicleData', JSON.stringify(vehicleData));
     }
-    
+    /*
+    pendienteeeeeeee para agregar y subir las fotos en formato correcto
+
+
     // Convertir fotos base64 a blobs y agregarlas
     Object.entries(capturedPhotos).forEach(([photoId, dataUrl]) => {
       // Convertir base64 a blob
@@ -476,7 +220,7 @@ function UploadCarContent() {
       const blob = new Blob([byteArray], { type: 'image/jpeg' });
       
       uploadData.append(`photo_${photoId}`, blob, `${photoId}.jpg`);
-    });
+    });*/
     
     return uploadData;
   };
@@ -522,10 +266,7 @@ function UploadCarContent() {
     }
   };
 
-  const currentGuide = photoGuides[currentPhotoIndex];
-  const capturedPhotosCount = Object.keys(capturedPhotos).length;
-  const totalRequiredPhotos = photoGuides.filter(guide => guide.required).length;
-
+   const mandatoryPhotosTakenCount = capturedPhotos.filter(p => PHOTO_TEMPLATES.find(t => t.id === p.templateId && t.required)).length;
   return (
     <div className="container py-8 px-4 md:px-6 lg:px-8 max-w-4xl mx-auto">
       <div className="mb-8">
@@ -698,178 +439,56 @@ function UploadCarContent() {
         </Card>
 
         {/* Sección 3: Captura de Fotos */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Camera className="h-5 w-5" />
-              Fotos del Vehículo
-            </CardTitle>
-            <CardDescription>
-              Toma {totalRequiredPhotos} fotos siguiendo las guías. Progreso: {capturedPhotosCount}/{totalRequiredPhotos}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {/* Estado de permisos de cámara */}
-            {cameraPermission === 'denied' && (
-              <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <Shield className="h-5 w-5 text-destructive" />
-                  <h3 className="font-semibold text-destructive">Permisos de Cámara Requeridos</h3>
-                </div>
-                <p className="text-sm text-destructive mb-3">
-                  Para tomar fotos de tu vehículo, necesitas permitir el acceso a la cámara.
-                </p>
-                <div className="flex gap-2">
-                  <Button onClick={requestCameraPermission} size="sm">
-                    <Shield className="h-4 w-4 mr-2" />
-                    Solicitar Permisos
-                  </Button>
-                  <Button onClick={openCameraSettings} variant="outline" size="sm">
-                    <Settings className="h-4 w-4 mr-2" />
-                    Configuración
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {/* Error de cámara */}
-            {cameraError && (
-              <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <AlertCircle className="h-5 w-5 text-destructive" />
-                  <h3 className="font-semibold text-destructive">Error de Cámara</h3>
-                </div>
-                <p className="text-sm text-destructive">{cameraError}</p>
-              </div>
-            )}
-
-            {/* Progreso de fotos */}
-            <div className="mb-6">
+         <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Camera className="h-5 w-5" />
+                      Fotos del Vehículo
+                    </CardTitle>
+                    <CardDescription>
+                      Toma {mandatoryTemplatesCount} fotos siguiendo las guías. Progreso: {mandatoryPhotosTakenCount}/{mandatoryTemplatesCount}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="mb-6">
               <div className="flex justify-between text-sm mb-2">
                 <span>Progreso de fotos</span>
-                <span>{capturedPhotosCount}/{totalRequiredPhotos}</span>
+                <span>{mandatoryPhotosTakenCount}/{mandatoryTemplatesCount}</span>
               </div>
               <div className="w-full bg-muted rounded-full h-2">
                 <div 
-                  className="bg-primary h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${(capturedPhotosCount / totalRequiredPhotos) * 100}%` }}
+                  className="bg-primary h-2 rounded-full transition-all duration-300 mb-2" 
+                  style={{ width: `${(mandatoryPhotosTakenCount/mandatoryTemplatesCount) * 100}%` }}
                 />
               </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {PHOTO_TEMPLATES.map(template => {
+            const capturedPhoto = capturedPhotos.find(p => p.templateId === template.id);
+            return (
+              <PhotoSlot
+                key={template.id}
+                template={template}
+                capturedPhoto={capturedPhoto}
+                onCapture={handleOpenCapture}
+                onDelete={handleDeletePhoto}
+                onRetake={handleOpenCapture} // Retake uses the same capture flow
+              />
+            );
+          })}
+        </div>
+
+        {currentTemplateForCapture && (
+          <CameraModal
+            isOpen={isCameraModalOpen}
+            onClose={handleCloseCaptureModal}
+            onCapture={handlePhotoCaptured}
+            template={currentTemplateForCapture}
+          />
+        )}
             </div>
-
-            {/* Vista de cámara */}
-            {isCapturing && (
-              <div className="mb-6">
-                <div className="relative bg-black rounded-lg overflow-hidden">
-                  <video
-                    ref={videoRef}
-                    autoPlay
-                    playsInline
-                    muted
-                    className="w-full h-64 md:h-80 object-cover"
-                  />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="border-2 border-white border-dashed rounded-lg w-3/4 h-3/4 flex items-center justify-center">
-                      <span className="text-white text-center px-4 bg-black/50 rounded p-2">
-                        {currentGuide.description}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="absolute top-4 left-4 bg-black/50 text-white px-3 py-1 rounded">
-                    {currentGuide.title}
-                  </div>
-                </div>
-                <div className="flex justify-center gap-4 mt-4">
-                  <Button variant="outline" onClick={stopCamera}>
-                    <X className="h-4 w-4 mr-2" />
-                    Cancelar
-                  </Button>
-                  <Button onClick={capturePhoto} size="lg">
-                    <Camera className="h-4 w-4 mr-2" />
-                    Capturar Foto
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {/* Grid de fotos */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {photoGuides.map((guide, index) => {
-                const isCapture = capturedPhotos[guide.id];
-                const isCurrent = index === currentPhotoIndex;
-                
-                return (
-                  <div
-                    key={guide.id}
-                    className={cn(
-                      "border-2 rounded-lg p-4 transition-all",
-                      isCapture ? "border-green-500 bg-green-50" : "border-muted",
-                      isCurrent && isCapturing ? "border-primary bg-primary/5" : ""
-                    )}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-medium text-sm">{guide.title}</h3>
-                      {isCapture ? (
-                        <CheckCircle className="h-5 w-5 text-green-600" />
-                      ) : guide.required ? (
-                        <AlertCircle className="h-5 w-5 text-orange-500" />
-                      ) : null}
-                    </div>
-                    
-                    {/* Imagen de referencia o foto capturada */}
-                    <div className="relative h-32 bg-muted rounded mb-2 overflow-hidden">
-                      <Image
-                       src={isCapture ? capturedPhotos[guide.id] : guide.referenceImage}
-                       alt={guide.title}
-                       className="w-full h-full object-cover"
-                       width={500}  // Obligatorio: define el ancho máximo esperado
-                       height={300} // Obligatorio: define el alto máximo esperado
-                       priority={true} // Opcional: si es una imagen crítica (ej. LCP)
-                      />
-                      {!isCapture && (
-                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                          <span className="text-white text-xs text-center px-2">
-                            Referencia
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    
-                    <p className="text-xs text-muted-foreground mb-3">
-                      {guide.description}
-                    </p>
-                    
-                    {isCapture ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => retakePhoto(guide.id)}
-                        className="w-full"
-                      >
-                        <RotateCcw className="h-3 w-3 mr-1" />
-                        Retomar
-                      </Button>
-                    ) : (
-                      <Button
-                        size="sm"
-                        onClick={() => {
-                          setCurrentPhotoIndex(index);
-                          startCamera();
-                        }}
-                        className="w-full"
-                        disabled={isCapturing || cameraPermission === 'denied'}
-                      >
-                        <Camera className="h-3 w-3 mr-1" />
-                        Tomar Foto
-                      </Button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-
+                  </CardContent>
+          </Card>
+        
         {/* Botón de envío */}
         <Card>
           <CardContent className="pt-6">
@@ -893,11 +512,10 @@ function UploadCarContent() {
                   {Object.values(formData).every(v => v.trim()) ? <CheckCircle className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
                   Información de venta completa
                 </div>
-                <div className={cn("flex items-center gap-2 text-sm", 
-                  capturedPhotosCount === totalRequiredPhotos ? "text-green-600" : "text-muted-foreground"
+                <div className={cn("flex items-center gap-2 text-sm", "text-muted-foreground"
                 )}>
-                  {capturedPhotosCount === totalRequiredPhotos ? <CheckCircle className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
-                  Todas las fotos capturadas ({capturedPhotosCount}/{totalRequiredPhotos})
+                  {<CheckCircle className="h-4 w-4" />}
+                  Todas las fotos capturadas ({}/{})
                 </div>
               </div>
 
@@ -925,7 +543,7 @@ function UploadCarContent() {
       </div>
 
       {/* Canvas oculto para captura de fotos */}
-      <canvas ref={canvasRef} className="hidden" />
+      <canvas className="hidden" />
     </div>
   );
 }
