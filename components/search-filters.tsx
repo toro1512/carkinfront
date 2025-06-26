@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect , useCallback} from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -29,6 +29,20 @@ import {
 import { Slider } from "@/components/ui/slider";
 import { Search, X } from "lucide-react";
 import { useCarsStore } from "@/lib/store/cars-store";
+import { debounce } from "lodash";
+
+interface FilterState {
+  make?: string;
+  model?: string;
+  minYear?: number;
+  maxYear?: number;
+  minPrice?: number;
+  maxPrice?: number;
+  categoria?: string;
+  color?: string;
+  isNew?: boolean;
+  searchTerm?: string;
+}
 
 const searchSchema = z.object({
   make: z.string().optional(),
@@ -38,8 +52,10 @@ const searchSchema = z.object({
   minYear: z.number().optional(),
   maxYear: z.number().optional(),
   bodyType: z.string().optional(),
+  categoria: z.string().optional(),
   fuelType: z.string().optional(),
   searchTerm: z.string().optional(),
+  color: z.string().optional(),
 });
 
 type SearchValues = z.infer<typeof searchSchema>;
@@ -51,99 +67,127 @@ const yearRange = Array.from(
 );
 
 const makeOptions = [
-  "Todas las Marcas",
-  "Audi",
-  "BMW",
-  "Ford",
-  "Honda",
-  "Lexus",
-  "Mercedes-Benz",
-  "Porsche",
-  "Tesla",
-  "Toyota",
-  "Volkswagen",
+  { value: "all", label: "Todas las Marcas" },
+  { value: "Audi", label: "Audi" },
+  { value: "BMW", label: "BMW" },
+  { value: "Ford", label: "Ford" },
+  { value: "Honda", label: "Honda" },
+  { value: "Lexus", label: "Lexus" },
+  { value: "Mercedes-Benz", label: "Mercedes-Benz" },
+  { value: "Porsche", label: "Porsche" },
+  { value: "Tesla", label: "Tesla" },
+  { value: "Toyota", label: "Toyota" },
+  { value: "Volkswagen", label: "Volkswagen" },
 ];
 
 const bodyTypeOptions = [
-  "Todos los Tipos",
-  "Sedán",
-  "SUV",
-  "Coupé",
-  "Convertible",
-  "Hatchback",
-  "Familiar",
-  "Camioneta",
-  "Van",
+  { value: "all", label: "Todos los Tipos" },
+  { value: "Sedán", label: "Sedán" },
+  { value: "SUV", label: "SUV" },
+  { value: "Coupé", label: "Coupé" },
+  { value: "Convertible", label: "Convertible" },
+  { value: "Hatchback", label: "Hatchback" },
+  { value: "Familiar", label: "Familiar" },
+  { value: "Camioneta", label: "Camioneta" },
+  { value: "Van", label: "Van" },
 ];
 
 const fuelTypeOptions = [
-  "Todos los Combustibles",
-  "Gasolina",
-  "Diésel",
-  "Híbrido",
-  "Eléctrico",
-  "Híbrido Enchufable",
+  { value: "all", label: "Todos los Combustibles" },
+  { value: "Gasolina", label: "Gasolina" },
+  { value: "Diésel", label: "Diésel" },
+  { value: "Híbrido", label: "Híbrido" },
+  { value: "Eléctrico", label: "Eléctrico" },
+  { value: "Híbrido Enchufable", label: "Híbrido Enchufable" },
 ];
 
 export function SearchFilters() {
-  const { filters, setFilters, clearFilters } = useCarsStore();
-  const [priceRange, setPriceRange] = useState([
-    filters.minPrice || 0, 
+  const { filters, applyFilters, resetFilters } = useCarsStore();
+  const [priceRange, setPriceRange] = useState<[number, number]>([
+    filters.minPrice || 0,
     filters.maxPrice || 200000
   ]);
 
   const form = useForm<SearchValues>({
     resolver: zodResolver(searchSchema),
     defaultValues: {
-      make: filters.make || "Todas las Marcas",
+      make: filters.make || "all",
+      model: filters.model || "all",
+      minPrice: filters.minPrice || 0,
+      maxPrice: filters.maxPrice || 200000,
+      minYear: filters.minYear || yearRange[yearRange.length - 1],
+      maxYear: filters.maxYear || currentYear,
+      categoria: filters.categoria || "all",
+      color: filters.color || "all",
+      searchTerm: filters.searchTerm || "",
+    },
+  });
+   const debouncedApplyFilters = useCallback(
+    debounce((filters: Partial<FilterState>) => {
+      applyFilters(filters);
+    }, 500),
+    [applyFilters]
+  );
+
+   // Actualizar el formulario cuando los filtros cambian externamente
+  useEffect(() => {
+    form.reset({
+      make: filters.make || "all",
       model: filters.model || "",
       minPrice: filters.minPrice || 0,
       maxPrice: filters.maxPrice || 200000,
       minYear: filters.minYear || yearRange[yearRange.length - 1],
       maxYear: filters.maxYear || currentYear,
-      bodyType: filters.bodyType || "Todos los Tipos",
-      fuelType: filters.fuelType || "Todos los Combustibles",
+      categoria: filters.categoria || "all",
+      color: filters.color || "all",
       searchTerm: filters.searchTerm || "",
-    },
-  });
-
-  function onSubmit(values: SearchValues) {
-    // Aplicar filtros al store
-    setFilters({
-      make: values.make === "Todas las Marcas" ? undefined : values.make,
-      model: values.model || undefined,
-      minPrice: values.minPrice,
-      maxPrice: values.maxPrice,
-      minYear: values.minYear,
-      maxYear: values.maxYear,
-      bodyType: values.bodyType === "Todos los Tipos" ? undefined : values.bodyType,
-      fuelType: values.fuelType === "Todos los Combustibles" ? undefined : values.fuelType,
-      searchTerm: values.searchTerm || undefined,
     });
-  }
-
-  function handleClearFilters() {
-    clearFilters();
+    setPriceRange([
+      filters.minPrice || 0,
+      filters.maxPrice || 200000
+    ]);
+  }, []);
+  const handleFieldChange = (fieldName: keyof SearchValues, value: any) => {
+    form.setValue(fieldName, value);
+    
+    const currentValues = form.getValues();
+    const filtersToApply = {
+      make: currentValues.make === "all" ? undefined : currentValues.make,
+      model: currentValues.model || undefined,
+      minPrice: currentValues.minPrice,
+      maxPrice: currentValues.maxPrice,
+      minYear: currentValues.minYear,
+      maxYear: currentValues.maxYear,
+      categoria: currentValues.categoria === "all" ? undefined : currentValues.categoria,
+      color: currentValues.color === "all" ? undefined : currentValues.color,
+      searchTerm: currentValues.searchTerm || undefined,
+    };
+    
+    debouncedApplyFilters(filtersToApply);
+  };
+  const handleClearFilters = () => {
+    resetFilters();
     form.reset({
-      make: "Todas las Marcas",
+      make: "all",
       model: "",
       minPrice: 0,
       maxPrice: 200000,
       minYear: yearRange[yearRange.length - 1],
       maxYear: currentYear,
-      bodyType: "Todos los Tipos",
-      fuelType: "Todos los Combustibles",
+      categoria: "all",
+      color: "all",
       searchTerm: "",
     });
     setPriceRange([0, 200000]);
-  }
+  };
 
-  // Verificar si hay filtros activos
-  const hasActiveFilters = Object.values(filters).some(value => value !== undefined);
+  const hasActiveFilters = Object.values(filters).some(
+    value => value !== undefined && value !== "" && value !== 0
+  );
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="w-full">
+      <form className="w-full">
         {/* Búsqueda General */}
         <div className="mb-4">
           <FormField
@@ -158,7 +202,10 @@ export function SearchFilters() {
                       id="searchTerm"
                       placeholder="Buscar por marca, modelo, tipo..."
                       {...field}
-                      value={field.value || ""}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        handleFieldChange("searchTerm", e.target.value);
+                      }}
                       className="pl-10"
                     />
                   </FormControl>
@@ -177,7 +224,10 @@ export function SearchFilters() {
               <FormItem>
                 <Label htmlFor="make">Marca</Label>
                 <Select
-                  onValueChange={field.onChange}
+                  onValueChange={(value) => {
+                    field.onChange(value);
+                    handleFieldChange("make", value);
+                  }}
                   value={field.value}
                 >
                   <FormControl>
@@ -186,9 +236,9 @@ export function SearchFilters() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {makeOptions.map((make) => (
-                      <SelectItem key={make} value={make}>
-                        {make}
+                    {makeOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -196,6 +246,7 @@ export function SearchFilters() {
               </FormItem>
             )}
           />
+
           <FormField
             control={form.control}
             name="model"
@@ -207,12 +258,12 @@ export function SearchFilters() {
                     id="model"
                     placeholder="Cualquier modelo"
                     {...field}
-                    value={field.value || ""}
                   />
                 </FormControl>
               </FormItem>
             )}
           />
+
           <FormField
             control={form.control}
             name="minYear"
@@ -221,7 +272,7 @@ export function SearchFilters() {
                 <Label htmlFor="minYear">Año Mínimo</Label>
                 <Select
                   onValueChange={(value) => field.onChange(Number(value))}
-                  value={field.value?.toString()}
+                  value={field.value?.toString() || yearRange[yearRange.length - 1].toString()}
                 >
                   <FormControl>
                     <SelectTrigger id="minYear">
@@ -239,15 +290,12 @@ export function SearchFilters() {
               </FormItem>
             )}
           />
+
           <div className="flex gap-2">
-            <Button type="submit" className="flex-1">
-              <Search className="h-4 w-4 mr-2" />
-              Buscar
-            </Button>
             {hasActiveFilters && (
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 onClick={handleClearFilters}
                 className="px-3"
               >
@@ -257,7 +305,7 @@ export function SearchFilters() {
             )}
           </div>
         </div>
-        
+
         <Accordion type="single" collapsible>
           <AccordionItem value="advanced-filters" className="border-none">
             <AccordionTrigger className="py-2 text-sm font-medium text-muted-foreground hover:text-foreground">
@@ -272,10 +320,11 @@ export function SearchFilters() {
                       value={priceRange}
                       max={200000}
                       step={1000}
+                      minStepsBetweenThumbs={1}
                       onValueChange={(value) => {
                         setPriceRange(value as [number, number]);
-                        form.setValue("minPrice", value[0]);
-                        form.setValue("maxPrice", value[1]);
+                        form.setValue("minPrice", value[0], { shouldDirty: true });
+                        form.setValue("maxPrice", value[1], { shouldDirty: true });
                       }}
                     />
                   </div>
@@ -284,58 +333,7 @@ export function SearchFilters() {
                     <span>${priceRange[1].toLocaleString()}</span>
                   </div>
                 </div>
-                <FormField
-                  control={form.control}
-                  name="bodyType"
-                  render={({ field }) => (
-                    <FormItem>
-                      <Label htmlFor="bodyType">Tipo de Carrocería</Label>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger id="bodyType">
-                            <SelectValue placeholder="Seleccionar tipo de carrocería" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {bodyTypeOptions.map((type) => (
-                            <SelectItem key={type} value={type}>
-                              {type}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="fuelType"
-                  render={({ field }) => (
-                    <FormItem>
-                      <Label htmlFor="fuelType">Tipo de Combustible</Label>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger id="fuelType">
-                            <SelectValue placeholder="Seleccionar tipo de combustible" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {fuelTypeOptions.map((type) => (
-                            <SelectItem key={type} value={type}>
-                              {type}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </FormItem>
-                  )}
-                />
+                              
               </div>
             </AccordionContent>
           </AccordionItem>

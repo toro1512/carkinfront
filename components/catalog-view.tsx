@@ -23,12 +23,13 @@ export function CatalogView() {
     error,
     filteredCars,
     currentPage,
-    favorites,
+    visibleCars,
     getPaginatedCars,
     getTotalPages,
     setCurrentPage,
-    toggleFavorite,
-  } = useCarsStore();
+    itemsPerPage,
+   } = useCarsStore();
+   
 
   const [viewMode, setViewMode] = React.useState<"grid" | "list">("grid");
   const [activeTab, setActiveTab] = React.useState("all");
@@ -152,8 +153,8 @@ export function CatalogView() {
               <Card className="overflow-hidden h-full flex flex-col hover:shadow-md transition-shadow">
                 <div className="relative h-48 w-full">
                   <Image
-                    src={car.image}
-                    alt={`${car.make} ${car.model}`}
+                    src={car.imagen}
+                    alt={`${car.marca} ${car.modelo}`}
                     fill
                     className="object-cover"
                     sizes="(max-width: 768px) 100vw, 25vw"
@@ -163,22 +164,14 @@ export function CatalogView() {
                       Nueva Llegada
                     </Badge>
                   )}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute top-2 right-2 rounded-full bg-background/80 hover:bg-background/90"
-                    onClick={() => toggleFavorite(car.id)}
-                  >
-                    <Heart className={cn("h-4 w-4", favorites.includes(car.id) ? "fill-red-500 stroke-red-500" : "")} />
-                    <span className="sr-only">Agregar a favoritos</span>
-                  </Button>
+                  
                 </div>
                 <CardContent className="flex-grow pt-6">
                   <h3 className="text-lg font-bold mb-1">
-                    {car.make} {car.model}
+                    {car.marca} {car.modelo}
                   </h3>
                   <p className="text-xl font-semibold mb-3">
-                    ${car.price.toLocaleString()}
+                    ${car.precio.toLocaleString()}
                   </p>
                   <div className="grid grid-cols-2 gap-y-2 text-sm mb-3">
                     <div className="flex items-center gap-1 text-muted-foreground">
@@ -187,11 +180,11 @@ export function CatalogView() {
                     </div>
                     <div className="flex items-center gap-1 text-muted-foreground">
                       <Gauge className="h-4 w-4" />
-                      <span>{car.mileage.toLocaleString()} km</span>
+                      <span>{car.kilometraje.toLocaleString()} km</span>
                     </div>
                     <div className="flex items-center gap-1 text-muted-foreground col-span-2">
                       <Fuel className="h-4 w-4" />
-                      <span>{car.fuelType}</span>
+                      <span>{car.categoria}</span>
                     </div>
                   </div>
                 </CardContent>
@@ -217,8 +210,8 @@ export function CatalogView() {
                 <div className="flex flex-col md:flex-row">
                   <div className="relative h-60 md:h-auto md:w-1/3 xl:w-1/4">
                     <Image
-                      src={car.image}
-                      alt={`${car.make} ${car.model}`}
+                      src={car.imagen}
+                      alt={`${car.marca} ${car.modelo}`}
                       fill
                       className="object-cover"
                       sizes="(max-width: 768px) 100vw, 33vw"
@@ -234,21 +227,13 @@ export function CatalogView() {
                       <div className="flex justify-between items-start">
                         <div>
                           <h3 className="text-xl font-bold mb-1">
-                            {car.make} {car.model}
+                            {car.marca} {car.modelo}
                           </h3>
                           <p className="text-2xl font-semibold">
-                            ${car.price.toLocaleString()}
+                            ${car.precio.toLocaleString()}
                           </p>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="md:hidden rounded-full"
-                          onClick={() => toggleFavorite(car.id)}
-                        >
-                          <Heart className={cn("h-5 w-5", favorites.includes(car.id) ? "fill-red-500 stroke-red-500" : "")} />
-                          <span className="sr-only">Agregar a favoritos</span>
-                        </Button>
+                       
                       </div>
                       
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-y-2 gap-x-4 text-sm mt-4">
@@ -258,31 +243,18 @@ export function CatalogView() {
                         </div>
                         <div className="flex items-center gap-1 text-muted-foreground">
                           <Gauge className="h-4 w-4 flex-shrink-0" />
-                          <span>{car.mileage.toLocaleString()} km</span>
+                          <span>{car.kilometraje.toLocaleString()} km</span>
                         </div>
                         <div className="flex items-center gap-1 text-muted-foreground">
                           <Fuel className="h-4 w-4 flex-shrink-0" />
-                          <span>{car.fuelType}</span>
+                          <span>{car.categoria}</span>
                         </div>
                       </div>
                       
-                      <p className="mt-4 text-muted-foreground hidden md:block">
-                        {car.description.length > 150 
-                          ? car.description.substring(0, 150) + "..." 
-                          : car.description}
-                      </p>
+                      
                     </div>
                     
                     <div className="mt-4 md:mt-0 md:ml-6 flex md:flex-col items-center md:justify-between gap-4">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="hidden md:flex rounded-full hover:bg-background/80"
-                        onClick={() => toggleFavorite(car.id)}
-                      >
-                        <Heart className={cn("h-5 w-5", favorites.includes(car.id) ? "fill-red-500 stroke-red-500" : "")} />
-                        <span className="sr-only">Agregar a favoritos</span>
-                      </Button>
                       <Button asChild className="md:w-auto w-full">
                         <Link href={`/catalog/${car.id}`}>Ver Detalles</Link>
                       </Button>

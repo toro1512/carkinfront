@@ -96,7 +96,7 @@ export function VerificationForm() {
     setResendSuccess(false)
 
     try {
-      const success = await resendVerificationCode(email)
+      const success = await resendVerificationCode(email,name)
 
       if (success) {
         setResendSuccess(true)
@@ -192,7 +192,7 @@ export function VerificationForm() {
       </CardContent>
       <CardFooter className="flex justify-center">
         <p className="text-sm text-gray-500">
-          <Link href="/registro" className="text-primary hover:underline">
+          <Link href="/auth/register" className="text-primary hover:underline">
             Volver al registro
           </Link>
         </p>

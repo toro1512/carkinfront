@@ -59,8 +59,8 @@ export function FeaturedCars() {
           <Card className="overflow-hidden h-full flex flex-col hover:shadow-lg transition-shadow">
             <div className="relative h-48 w-full">
               <Image
-                src={car.image}
-                alt={`${car.make} ${car.model}`}
+                src={car.imagen}
+                alt={`${car.marca} ${car.modelo}`}
                 fill
                 className="object-cover"
                 sizes="(max-width: 768px) 100vw, 25vw"
@@ -73,10 +73,10 @@ export function FeaturedCars() {
             </div>
             <CardContent className="flex-grow pt-6">
               <h3 className="text-xl font-bold mb-1">
-                {car.make} {car.model}
+                {car.marca} {car.modelo}
               </h3>
               <p className="text-2xl font-semibold mb-3">
-                ${car.price.toLocaleString()}
+                ${car.precio.toLocaleString()}
               </p>
               <div className="grid grid-cols-2 gap-y-2 text-sm">
                 <div className="flex items-center gap-1 text-muted-foreground">
@@ -85,11 +85,11 @@ export function FeaturedCars() {
                 </div>
                 <div className="flex items-center gap-1 text-muted-foreground">
                   <Gauge className="h-4 w-4" />
-                  <span>{car.mileage.toLocaleString()} km</span>
+                  <span>{car.kilometraje.toLocaleString()} km</span>
                 </div>
                 <div className="flex items-center gap-1 text-muted-foreground col-span-2">
                   <Fuel className="h-4 w-4" />
-                  <span>{car.fuelType}</span>
+                  <span>{car.categoria}</span>
                 </div>
               </div>
             </CardContent>

@@ -1,196 +1,163 @@
 import { create } from 'zustand';
-import { Car } from '@/lib/cars-api';
+import { Carro } from '@/types/carro';
+import { getAllCars } from '@/lib/cars-api';
+import { transformBackendToFrontend } from '@/lib/transformaciones/transforCars';
 
-export interface FilterOptions {
+interface FilterState {
   make?: string;
   model?: string;
-  minPrice?: number;
-  maxPrice?: number;
   minYear?: number;
   maxYear?: number;
-  bodyType?: string;
-  fuelType?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  categoria?: string;
+  color?: string;
+  nuevo?: boolean;
   searchTerm?: string;
 }
 
-interface CarsState {
-  // Estado de los datos
-  allCars: Car[];
-  filteredCars: Car[];
+interface CarsStore {
+  allCars: Carro[];
+  filteredCars: Carro[];
+  visibleCars: Carro[];
+  currentPage: number;
+  itemsPerPage: number;
   loading: boolean;
   error: string | null;
-  
-  // Estado de filtros
-  filters: FilterOptions;
-  
-  // Estado de paginación
-  currentPage: number;
-  carsPerPage: number;
-  
-  // Estado de favoritos
-  favorites: number[];
+  filters: FilterState;
   
   // Acciones
-  setAllCars: (cars: Car[]) => void;
-  setLoading: (loading: boolean) => void;
-  setError: (error: string | null) => void;
-  setFilters: (filters: FilterOptions) => void;
-  clearFilters: () => void;
+  fetchCars: () => Promise<void>;
+  applyFilters: (newFilters: Partial<FilterState>) => void;
+  resetFilters: () => void;
   setCurrentPage: (page: number) => void;
-  setCarsPerPage: (perPage: number) => void;
-  toggleFavorite: (carId: number) => void;
-  
-  // Funciones computadas
-  getPaginatedCars: () => Car[];
+  getPaginatedCars: () => Carro[];
   getTotalPages: () => number;
-  getCarById: (id: string) => Car | null;
-  getFeaturedCars: () => Car[];
+  getFeaturedCars: () => Carro[];
 }
 
-const applyFilters = (cars: Car[], filters: FilterOptions): Car[] => {
-  return cars.filter(car => {
-    // Filtro por marca
-    if (filters.make && filters.make !== "Todas las Marcas" && car.make !== filters.make) {
-      return false;
-    }
-    
-    // Filtro por modelo (búsqueda parcial)
-    if (filters.model && !car.model.toLowerCase().includes(filters.model.toLowerCase())) {
-      return false;
-    }
-    
-    // Filtro por año mínimo
-    if (filters.minYear && car.year < filters.minYear) {
-      return false;
-    }
-    
-    // Filtro por año máximo
-    if (filters.maxYear && car.year > filters.maxYear) {
-      return false;
-    }
-    
-    // Filtro por precio mínimo
-    if (filters.minPrice && car.price < filters.minPrice) {
-      return false;
-    }
-    
-    // Filtro por precio máximo
-    if (filters.maxPrice && car.price > filters.maxPrice) {
-      return false;
-    }
-    
-    // Filtro por tipo de carrocería
-    if (filters.bodyType && filters.bodyType !== "Todos los Tipos" && car.bodyType !== filters.bodyType) {
-      return false;
-    }
-    
-    // Filtro por tipo de combustible
-    if (filters.fuelType && filters.fuelType !== "Todos los Combustibles" && car.fuelType !== filters.fuelType) {
-      return false;
-    }
-    
-    // Filtro por término de búsqueda general
-    if (filters.searchTerm) {
-      const searchTerm = filters.searchTerm.toLowerCase();
-      const searchableText = `${car.make} ${car.model} ${car.bodyType} ${car.fuelType} ${car.description}`.toLowerCase();
-      if (!searchableText.includes(searchTerm)) {
-        return false;
-      }
-    }
-    
-    return true;
-  });
-};
-
-export const useCarsStore = create<CarsState>((set, get) => ({
-  // Estado inicial
+export const useCarsStore = create<CarsStore>((set, get) => ({
   allCars: [],
   filteredCars: [],
+  visibleCars: [],
+  currentPage: 1,
+  itemsPerPage: 5,
   loading: false,
   error: null,
   filters: {},
-  currentPage: 1,
-  carsPerPage: 5,
-  favorites: [],
-  
-  // Acciones
-  setAllCars: (cars) => {
-    set((state) => {
-      const filteredCars = applyFilters(cars, state.filters);
-      return {
-        allCars: cars,
-        filteredCars,
-        error: null,
-      };
-    });
-  },
-  
-  setLoading: (loading) => set({ loading }),
-  
-  setError: (error) => set({ error }),
-  
-  setFilters: (newFilters) => {
-    set((state) => {
-      const updatedFilters = { ...state.filters, ...newFilters };
-      const filteredCars = applyFilters(state.allCars, updatedFilters);
-      return {
-        filters: updatedFilters,
-        filteredCars,
-        currentPage: 1, // Resetear a la primera página cuando se aplican filtros
-      };
-    });
-  },
-  
-  clearFilters: () => {
-    set((state) => ({
-      filters: {},
-      filteredCars: state.allCars,
-      currentPage: 1,
-    }));
-  },
-  
-  setCurrentPage: (page) => set({ currentPage: page }),
-  
-  setCarsPerPage: (perPage) => {
-    set((state) => ({
-      carsPerPage: perPage,
-      currentPage: 1, // Resetear a la primera página cuando cambia el número por página
-    }));
-  },
-  
-  toggleFavorite: (carId) => {
-    set((state) => ({
-      favorites: state.favorites.includes(carId)
-        ? state.favorites.filter(id => id !== carId)
-        : [...state.favorites, carId],
-    }));
-  },
-  
-  // Funciones computadas
-  getPaginatedCars: () => {
-    const state = get();
-    const startIndex = (state.currentPage - 1) * state.carsPerPage;
-    const endIndex = startIndex + state.carsPerPage;
-    return state.filteredCars.slice(startIndex, endIndex);
-  },
-  
-  getTotalPages: () => {
-    const state = get();
-    return Math.ceil(state.filteredCars.length / state.carsPerPage);
-  },
-  
-  getCarById: (id) => {
-    const state = get();
-    return state.allCars.find(car => car.id.toString() === id) || null;
-  },
-  
-  getFeaturedCars: () => {
-    const state = get();
-    // Retornar los primeros 4 carros nuevos, o los primeros 4 si no hay suficientes nuevos
-    const newCars = state.allCars.filter(car => car.isNew);
-    if (newCars.length >= 4) {
-      return newCars.slice(0, 4);
+
+  // Cargar todos los carros
+  fetchCars: async () => {
+    const { allCars } = get();
+    if (allCars.length > 0) return;
+
+    set({ loading: true, error: null });
+    
+    try {
+      const backendCars = await getAllCars();
+      const transformedCars = transformBackendToFrontend(backendCars);
+      
+      set({ 
+        allCars: transformedCars,
+        filteredCars: transformedCars,
+        visibleCars: transformedCars.slice(0, 5),
+        loading: false
+      });
+      
+    } catch (error) {
+      console.error('Error al cargar carros:', error);
+      set({ 
+        error: error instanceof Error ? error.message : 'Error desconocido',
+        loading: false 
+      });
     }
-    return state.allCars.slice(0, 4);
   },
+  getFeaturedCars: () => {
+  const { allCars } = get();
+  return allCars
+    .filter(car => car.isNew || car.precio < 30000) // Ejemplo de criterios
+    .sort((a, b) => b.precio - a.precio) // Ordenar por precio descendente
+    .slice(0, 4); // Tomar solo 4
+},
+  getPaginatedCars: () => {
+    const { filteredCars, currentPage, itemsPerPage } = get();
+    return filteredCars.slice(
+      (currentPage - 1) * itemsPerPage,
+      currentPage * itemsPerPage
+    );
+  },
+
+  getTotalPages: () => {
+    const { filteredCars, itemsPerPage } = get();
+    return Math.ceil(filteredCars.length / itemsPerPage);
+  },
+
+  // Aplicar filtros
+ applyFilters: (newFilters) => {
+  const { allCars, itemsPerPage } = get();
+    
+  const updatedFilters = { ...get().filters, ...newFilters };
+  console.log(updatedFilters)
+  const filtered = allCars.filter(car => {
+    const matchesSearch = !updatedFilters.searchTerm || 
+      `${car.marca} ${car.modelo} ${car.categoria}`.toLowerCase()
+        .includes(updatedFilters.searchTerm.toLowerCase());
+
+    const matchesMake = !updatedFilters.make || 
+      updatedFilters.make === "Todas las Marcas" ||
+      car.marca.toLowerCase().includes(updatedFilters.make.toLowerCase());
+
+    const matchesModel = !updatedFilters.model || 
+      car.modelo.toLowerCase().includes(updatedFilters.model.toLowerCase());
+
+    const matchesYear = (!updatedFilters.minYear || car.year >= updatedFilters.minYear) &&
+      (!updatedFilters.maxYear || car.year <= updatedFilters.maxYear);
+
+    const matchesPrice = (!updatedFilters.minPrice || car.precio >= updatedFilters.minPrice) &&
+      (!updatedFilters.maxPrice || car.precio <= updatedFilters.maxPrice);
+
+    const matchesBodyType = !updatedFilters.categoria|| 
+      updatedFilters.categoria === "Todos las categorias" ||
+      car.categoria === updatedFilters.categoria;
+
+    const matchesFuelType = !updatedFilters.color|| 
+      updatedFilters.color === "Todos los Combustibles" ||
+      car.colorExterior === updatedFilters.color;
+
+    const matchesColor = !updatedFilters.color || 
+      updatedFilters.color === "Todos los Colores" ||
+      car.colorExterior?.toLowerCase() === updatedFilters.color.toLowerCase();
+
+    return matchesSearch && matchesMake && matchesModel && 
+           matchesYear && matchesPrice && matchesBodyType && 
+           matchesFuelType && matchesColor;
+  });
+console.log(updatedFilters)
+  set({
+    filters: updatedFilters,
+    filteredCars: filtered,
+    visibleCars: filtered.slice(0, itemsPerPage),
+    currentPage: 1
+  });
+},
+
+  // Resetear filtros
+  resetFilters: () => {
+    const { allCars, itemsPerPage } = get();
+    set({
+      filters: {},
+      filteredCars: allCars,
+      visibleCars: allCars.slice(0, itemsPerPage),
+      currentPage: 1
+    });
+  },
+
+  // Cambiar página
+  setCurrentPage: (page) => set((state) => ({
+    currentPage: page,
+    visibleCars: state.filteredCars.slice(
+      (page - 1) * state.itemsPerPage,
+      page * state.itemsPerPage
+    )
+  }))
 }));

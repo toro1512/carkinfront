@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, Check, X } from 'lucide-react'
+import { useToast } from "@/hooks/use-toast";
 import Image from 'next/image';
 import logo from '@/public/logoisocol.png';
 
@@ -29,6 +30,7 @@ export function RegisterForm() {
 
   const { register } = useAuth()
   const router = useRouter()
+  const { toast } = useToast();
 
   const passwordValidation = validatePassword(password)
   const emailIsValid = validateEmail(email)
@@ -71,17 +73,20 @@ export function RegisterForm() {
 
     try {
       const success = await register(name, email, password, captchaToken)
-
       if (success) {
         setSuccess(true)
         // Redirigir a la página de verificación
-        router.push(`/verificarReg?email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`)
-      } else {
-        setError("Error al registrar la cuenta. Por favor, inténtalo de nuevo.")
+        router.push(`/verificar-reg?email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`)
       }
-    } catch (err) {
-      setError("Ocurrió un error al registrar la cuenta. Por favor, inténtalo de nuevo.")
-      console.error(err)
+
+
+    } catch (error) {
+      // El error ya se maneja en el store
+      toast({
+        title: "Error al registrar",
+        description: error instanceof Error ? error.message : "Dato incorrectas",
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false)
     }

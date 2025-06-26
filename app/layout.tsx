@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { ThemeProvider } from '@/components/theme-provider';
 import { AuthProvider } from '@/components/providers/auth-provider';
-import { CarsProvider } from '@/components/providers/cars-provider';
+import  CarsProvider  from '@/components/providers/cars-provider';
 import { AuthProvidermio } from "@/hooks/use-auth"
 import Header from '@/components/header';
 import Footer from '@/components/footer';

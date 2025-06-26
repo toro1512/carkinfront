@@ -13,7 +13,7 @@ interface AuthContextType {
   register: (name: string, email: string, password: string, captchaToken: string) => Promise<boolean>
   logout: () => Promise<void>
   verifyEmail: (name:string, email: string, code: string) => Promise<boolean>
-  resendVerificationCode: (email: string) => Promise<boolean>
+  resendVerificationCode: (email: string, name:string) => Promise<boolean>
 }
 
 // Crear el contexto con un valor inicial undefined
@@ -27,7 +27,7 @@ export function AuthProvidermio({ children }: { children: React.ReactNode }) {
    const login = async (email: string, password: string, captchaToken: string) => {
     setIsLoading(true)
     try {
-      const response = await fetch("/api/auth/login", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -58,27 +58,32 @@ export function AuthProvidermio({ children }: { children: React.ReactNode }) {
   const register = async (name: string, email: string, password: string, captchaToken: string) => {
     setIsLoading(true)
     try {
-      const response = await fetch("/api/auth/pre-register", {
+      
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/pre-register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ name, email, password, captchaToken }),
       })
-
-      return response.ok
-    } catch (error) {
-      console.error("Error al registrarse:", error)
-      return false
-    } finally {
-      setIsLoading(false)
+      const data = await response.json();
+     if (!response.ok) {
+      // Lanza el mensaje de error del backend (ej. "El correo electrónico ya está registrado")
+      throw new Error(data.error || "Error al registrar");
     }
+    return true;
+    } catch (error) {
+    console.error("Error al registrarse:", error);
+    throw error; // Propaga el error hacia el componente
+  } finally {
+    setIsLoading(false);
+  }
   }
 
   const verifyEmail = async (name:string, email: string, code: string) => {
     setIsLoading(true)
     try {
-      const response = await fetch("/api/auth/verify-and-register", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/verify-and-register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -102,26 +107,33 @@ export function AuthProvidermio({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const resendVerificationCode = async (email: string) => {
+  const resendVerificationCode = async (email: string, name:string) => {
     try {
-      const response = await fetch("/api/auth/resend-verification", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/resend-verification`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, name }),
       })
+const data = await response.json();
 
-      return response.ok
-    } catch (error) {
-      console.error("Error al reenviar código de verificación:", error)
-      return false
+     if (!response.ok) {
+      // Lanza el mensaje de error del backend (ej. "El correo electrónico ya está registrado")
+      throw new Error(data.error || "Error al registrar");
     }
+    return true;
+    } catch (error) {
+    console.error("Error al registrarse:", error);
+    throw error; // Propaga el error hacia el componente
+  } finally {
+    setIsLoading(false);
+  }
   }
 
   const logout = async () => {
     try {
-      await fetch("/api/auth/logout", {
+      await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/logout`, {
         method: "POST",
       })
       setUser(null)
