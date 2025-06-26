@@ -18,12 +18,8 @@ import Image from 'next/image';
 import logo from '@/public/logoisocol.png';
 
 //eliminar esta importaciones es para simular
-import { useAuthStore } from "@/lib/store/auth-store";
+
 import { useToast } from "@/hooks/use-toast";
-import { LoginCredentials } from '@/lib/types/auth';
-
-
-
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -33,8 +29,7 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [needsVerification, setNeedsVerification] = useState(false)
 
-  // descomentar const { login } = useAuth() y eliminar las lineas de abajo
-  const { login, isLoading, clearError } = useAuthStore();
+  const { login } = useAuth() ;
   const { toast } = useToast();
 
   
@@ -67,36 +62,16 @@ export default function LoginPage() {
     setIsSubmitting(true)
     setError("")
     setNeedsVerification(false)
-    const data: LoginCredentials = {
-       email: email,
-       password: password,
-       rememberMe: false
-      };
     
-    try {
-
-      await login(data);
-      
-      toast({
-        title: "¡Inicio de sesión exitoso!",
-        description: "Bienvenido de vuelta a AutoElite.",
-      });
-      
-      // Redirigir a la página de inicio
-      router.push("/");
-    } catch (error) {
-      // El error ya se maneja en el store
-      toast({
-        title: "Error al iniciar sesión",
-        description: error instanceof Error ? error.message : "Credenciales incorrectas",
-        variant: "destructive",
-      });
-    }
-   /* este es el codigo que vale el otro es de prueba
     try {
       const result = await login(email, password, captchaToken)
 
       if (result.success) {
+        toast({
+        title: "Bienvenido Carking",
+        description: "Sitio de carros para todos los Gustos",
+        variant: "destructive",
+      });
         router.push("/")
       } else if (result.needsVerification) {
         setNeedsVerification(true)
@@ -108,7 +83,7 @@ export default function LoginPage() {
       console.error(err)
     } finally {
       setIsSubmitting(false)
-    }*/
+    }
   }
 
   return (

@@ -28,10 +28,26 @@ const toastVariants = cva(
   'group pointer-events-auto relative flex w-full items-center justify-between space-x-4 overflow-hidden rounded-md border p-6 pr-8 shadow-lg transition-all data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-top-full data-[state=open]:sm:slide-in-from-bottom-full',
   {
     variants: {
-      variant: {
-        default: 'border bg-background text-foreground',
-        destructive:
-          'destructive group border-destructive bg-destructive text-destructive-foreground',
+        variant: {
+        default: "border bg-background text-foreground shadow-sm hover:bg-accent",
+        destructive: [
+          "group border-red-400 bg-gradient-to-br from-red-50 to-red-100 text-red-900",
+          "dark:border-red-900 dark:from-red-900/30 dark:to-red-950/80 dark:text-red-50",
+          "[&>svg]:text-red-600 dark:[&>svg]:text-red-400",
+          "shadow-red-200/50 dark:shadow-red-950/50",
+        ],
+        success: [
+          "group border-emerald-400 bg-gradient-to-br from-emerald-50 to-emerald-100 text-emerald-900",
+          "dark:border-emerald-600 dark:from-emerald-900/30 dark:to-emerald-950/80 dark:text-emerald-50",
+          "[&>svg]:text-emerald-600 dark:[&>svg]:text-emerald-400",
+          "shadow-emerald-200/50 dark:shadow-emerald-950/50",
+        ],
+        info: [
+          "group border-blue-400 bg-gradient-to-br from-blue-50 to-blue-100 text-blue-900",
+          "dark:border-blue-600 dark:from-blue-900/30 dark:to-blue-950/80 dark:text-blue-50",
+          "[&>svg]:text-blue-600 dark:[&>svg]:text-blue-400",
+          "shadow-blue-200/50 dark:shadow-blue-950/50",
+        ]
       },
     },
     defaultVariants: {
