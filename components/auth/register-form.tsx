@@ -5,9 +5,11 @@ import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { useAuth } from "@/hooks/use-auth"
+//import { useAuth } from "@/hooks/use-auth"
+import { useAuthStore } from "@/lib/store/auth-store"
 import { Captcha } from "./captcha"
 import { validatePassword, validateEmail } from "@/lib/utils"
+import type { RegisterData } from '@/lib/types/auth';
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -28,7 +30,7 @@ export function RegisterForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
 
-  const { register } = useAuth()
+  const { register } = useAuthStore()
   const router = useRouter()
   const { toast } = useToast();
 
@@ -72,7 +74,14 @@ export function RegisterForm() {
     setError("")
 
     try {
-      const success = await register(name, email, password, captchaToken)
+      const data: RegisterData = {
+      name: name as string,
+      email:  email as string,
+      password:  password as string,
+      capchat: captchaToken as string,
+      
+    };
+      const success = await register(data)
       if (success) {
         setSuccess(true)
         // Redirigir a la página de verificación

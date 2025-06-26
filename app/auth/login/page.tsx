@@ -5,7 +5,9 @@ import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { useAuth } from "@/hooks/use-auth"
+//import { useAuth } from "@/hooks/use-auth"
+import { useAuthStore } from "@/lib/store/auth-store";
+import type { LoginCredentials } from '@/lib/types/auth';
 import { Captcha } from "@/components/auth/captcha"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -29,7 +31,7 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [needsVerification, setNeedsVerification] = useState(false)
 
-  const { login } = useAuth() ;
+  const { login } = useAuthStore();
   const { toast } = useToast();
 
   
@@ -64,19 +66,24 @@ export default function LoginPage() {
     setNeedsVerification(false)
     
     try {
-      const result = await login(email, password, captchaToken)
+      const data: LoginCredentials = {
+            email:  email as string,
+            password:  password as string,
+            capchat: captchaToken as string,
+            
+          };
 
-      if (result.success) {
+      const result = await login(data)
+
+      if (result) {
         toast({
         title: "Bienvenido Carking",
         description: "Sitio de carros para todos los Gustos",
-        variant: "destructive",
+        variant: "success",
       });
         router.push("/")
-      } else if (result.needsVerification) {
-        setNeedsVerification(true)
-      } else {
-        setError(result.error || "Credenciales incorrectas. Por favor, inténtalo de nuevo.")
+      }  else {
+        setError( "Credenciales incorrectas. Por favor, inténtalo de nuevo.")
       }
     } catch (err) {
       setError("Ocurrió un error al iniciar sesión. Por favor, inténtalo de nuevo.")

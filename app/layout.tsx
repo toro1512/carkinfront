@@ -30,18 +30,20 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+        <CarsProvider>
           <AuthProvider>
            <AuthProvidermio>
-            <CarsProvider>
+           
               <div className="flex flex-col min-h-screen">
                 <Header />
                 <main className="flex-grow">{children}</main>
                 <Footer />
               </div>
               <Toaster />
-            </CarsProvider>
+           
            </AuthProvidermio>
           </AuthProvider>
+         </CarsProvider>
         </ThemeProvider>
       </body>
     </html>

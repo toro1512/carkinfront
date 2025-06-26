@@ -14,16 +14,15 @@ export type UserRole = 'admin' | 'dealer' | 'customer';
 export interface LoginCredentials {
   email: string;
   password: string;
+  capchat:string;
   rememberMe?: boolean;
 }
 
 export interface RegisterData {
-  firstName: string;
-  lastName: string;
+  name:string;
   email: string;
   password: string;
-  confirmPassword: string;
-  termsAccepted: boolean;
+  capchat: string;
 }
 
 export interface AuthResponse {

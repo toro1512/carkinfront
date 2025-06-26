@@ -12,8 +12,8 @@ interface AuthState {
   error: string | null;
   
   // Acciones
-  login: (credentials: LoginCredentials) => Promise<void>;
-  register: (data: RegisterData) => Promise<void>;
+  login: (credentials: LoginCredentials) => Promise<boolean>;
+  register: (data: RegisterData) => Promise<boolean>;
   logout: () => Promise<void>;
   refreshToken: () => Promise<void>;
   clearError: () => void;
@@ -46,7 +46,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       cookieUtils.setToken(response.token, credentials.rememberMe);
       cookieUtils.setRefreshToken(response.refreshToken, credentials.rememberMe);
       cookieUtils.setUserData(JSON.stringify(response.user), credentials.rememberMe);
-      
+      console.log(response)
       set({
         user: response.user,
         token: response.token,
@@ -56,6 +56,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       });
       
       console.log(`✅ Usuario ${response.user.email} autenticado como ${response.user.role}`);
+      return true;
       
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Error al iniciar sesión';
@@ -67,6 +68,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         error: errorMessage,
       });
       throw error;
+      return false;
     }
   },
 
@@ -91,7 +93,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       });
       
       console.log(`✅ Usuario ${response.user.email} registrado exitosamente`);
-      
+      return true;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Error al registrarse';
       set({
@@ -102,6 +104,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         error: errorMessage,
       });
       throw error;
+      return false;
     }
   },
 
