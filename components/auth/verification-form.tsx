@@ -13,10 +13,16 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2 } from 'lucide-react'
 
-export function VerificationForm() {
+export function VerificationForm({
+  initialEmail = "",
+  initialName = ""
+}: {
+  initialEmail?: string
+  initialName?: string
+}) {
+  const [email, setEmail] = useState(initialEmail)
+  const [name, setName] = useState(initialName)
   const [code, setCode] = useState("")
-  const [email, setEmail] = useState("")
-  const [name, setName] = useState("")
   const [error, setError] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isResending, setIsResending] = useState(false)
