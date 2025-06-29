@@ -1,5 +1,7 @@
 import { VerifiForm } from "@/components/auth/verifi-form";
 
+export const dynamic = 'force-dynamic'; 
+
 interface PageProps {
   params: {
     email: string;
