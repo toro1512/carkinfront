@@ -12,8 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2 } from 'lucide-react'
-
-export function VerificationForm() {
+function VerificationForm() {
   const [code, setCode] = useState("")
   const [email, setEmail] = useState("")
   const [name, setName] = useState("")
