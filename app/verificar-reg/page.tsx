@@ -1,4 +1,11 @@
 import { VerificationForm } from "@/components/auth/verification-form"
+
+// Opción 1: Desactiva prerenderizado completamente
+export const dynamic = 'force-dynamic'
+
+// Opción 2: Alternativa más óptima (recomendada)
+export const dynamicParams = true
+
 export default function VerificationPage({
   searchParams,
 }: {
