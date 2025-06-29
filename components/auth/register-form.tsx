@@ -85,7 +85,7 @@ export function RegisterForm() {
       if (success) {
         setSuccess(true)
         // Redirigir a la página de verificación
-        router.push(`/verificaemail?email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`)
+        router.push(`/auth/verificaemail/${encodeURIComponent(email)}/${encodeURIComponent(name)}`);
       }
 
 

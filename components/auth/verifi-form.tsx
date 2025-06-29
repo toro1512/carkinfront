@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useAuth } from "@/hooks/use-auth"
 import { Button } from "@/components/ui/button"
@@ -13,11 +13,16 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2 } from 'lucide-react'
 
-export function VerifiForm() {
+interface VerifiFormProps {
+  initialEmail?: string;
+  initialName?: string;
+}
+
+export function VerifiForm({ initialEmail = "", initialName = "" }: VerifiFormProps) {
     
       const [code, setCode] = useState("")
-      const [email, setEmail] = useState("")
-      const [name, setName] = useState("")
+      const [email, setEmail] = useState(initialEmail);
+  const [name, setName] = useState(initialName);
       const [error, setError] = useState("")
       const [isSubmitting, setIsSubmitting] = useState(false)
       const [isResending, setIsResending] = useState(false)
@@ -26,20 +31,7 @@ export function VerifiForm() {
     
       const { verifyEmail, resendVerificationCode } = useAuth()
       const router = useRouter()
-      const searchParams = useSearchParams()
-     
-      useEffect(() => {
-        // Obtener el email de los parámetros de la URL
-        const emailParam = searchParams.get("email")
-        if (emailParam) {
-          setEmail(emailParam)
-        }
-        const nameParam = searchParams.get("name")
-        if (nameParam) {
-          setName(nameParam)
-        }
-      }, [searchParams])
-    
+        
       useEffect(() => {
         // Contador para el tiempo de espera para reenviar el código
         if (countdown > 0) {
@@ -129,7 +121,7 @@ export function VerifiForm() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  disabled={!!searchParams.get("email")}
+                  disabled={!!initialEmail}
                 />
               </div>
     
