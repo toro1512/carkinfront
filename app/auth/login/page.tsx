@@ -83,11 +83,21 @@ export default function LoginPage() {
       });
         router.push("/")
       }  else {
+        toast({
+        title: "Credenciales incorrectas",
+        description: "Por favor, inténtalo de nuevo.",
+        variant: "destructive",
+      });
         setError( "Credenciales incorrectas. Por favor, inténtalo de nuevo.")
       }
     } catch (err) {
+      toast({
+        title: "Credenciales incorrectas",
+        description: "Por favor, inténtalo de nuevo.",
+        variant: "destructive",
+      });
       setError("Ocurrió un error al iniciar sesión. Por favor, inténtalo de nuevo.")
-      console.error(err)
+      
     } finally {
       setIsSubmitting(false)
     }
@@ -106,15 +116,7 @@ export default function LoginPage() {
                 height={100}
                 className="h-14 w-14 object-contain" // Mantienes las mismas dimensiones
               />
-            </div>
-            <div className="mb-4 p-3 bg-muted rounded-md text-sm">
-            <p className="font-medium mb-2">Credenciales de prueba:</p>
-            <div className="space-y-1 text-xs">
-              <p><strong>Admin:</strong> admin@autoelite.com / admin123</p>
-              <p><strong>Vendedor:</strong> dealer@autoelite.com / dealer123</p>
-              <p><strong>Cliente:</strong> cliente@ejemplo.com / cliente123</p>
-            </div>
-          </div>
+           v </div>
             </div>
             <CardTitle className="text-2xl text-center">Iniciar Sesion</CardTitle>
             <CardDescription className="text-center">Ingresa tus credenciales para acceder a tu cuenta</CardDescription>

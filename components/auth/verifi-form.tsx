@@ -12,6 +12,9 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2 } from 'lucide-react'
+import { useToast } from "@/hooks/use-toast";
+import { useAuthStore } from "@/lib/store/auth-store"
+
 
 interface VerifiFormProps {
   initialEmail?: string;
@@ -31,6 +34,7 @@ export function VerifiForm({ initialEmail = "", initialName = "" }: VerifiFormPr
     
       const { verifyEmail, resendVerificationCode } = useAuth()
       const router = useRouter()
+      const { toast } = useToast();
         
       useEffect(() => {
         // Contador para el tiempo de espera para reenviar el código
@@ -65,6 +69,11 @@ export function VerifiForm({ initialEmail = "", initialName = "" }: VerifiFormPr
           console.log(success)
     
           if (success) {
+             toast({
+               title: "Bienvenido Carking",
+               description: "Sitio de carros para todos los Gustos",
+               variant: "success",
+              });
             // Redirigir al inicio después de la verificación exitosa
             router.push("/")
           } else {

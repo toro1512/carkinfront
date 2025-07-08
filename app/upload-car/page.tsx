@@ -550,7 +550,7 @@ useEffect(() => {
 
 export default function UploadCarPage() {
   return (
-    <ProtectedRoute requiredRoles={['customer', 'dealer']}>
+    <ProtectedRoute requiredRoles={['Administrador', 'Usuario', 'Taller', 'SinRegistro']}>
       <UploadCarContent />
     </ProtectedRoute>
   );

@@ -110,7 +110,7 @@ function FavoritesContent() {
 
 export default function FavoritesPage() {
   return (
-    <ProtectedRoute requiredRoles={['customer']}>
+    <ProtectedRoute requiredRoles={['Administrador', 'Usuario', 'Taller']}>
       <FavoritesContent />
     </ProtectedRoute>
   );

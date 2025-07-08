@@ -29,8 +29,8 @@ function ProfileContent() {
 
   if (!user) return null;
 
-  const getInitials = (firstName: string, lastName: string) => {
-    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  const getInitials = (firstName: string) => {
+    return `${firstName.charAt(0)}`.toUpperCase();
   };
 
   const getRoleBadgeColor = (role: string) => {
@@ -95,13 +95,13 @@ type VerificationStatus = 'verified' | 'pending' | 'rejected' | 'not_started';
             <CardContent className="space-y-4">
               <div className="flex items-center space-x-4">
                 <Avatar className="h-20 w-20">
-                  <AvatarImage src={user.avatar} alt={`${user.firstName} ${user.lastName}`} />
+                  <AvatarImage src={user.avatar} alt={`${user.name}`} />
                   <AvatarFallback className="text-lg">
-                    {getInitials(user.firstName, user.lastName)}
+                    {getInitials(user.name)}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
-                  <h2 className="text-2xl font-bold">{user.firstName} {user.lastName}</h2>
+                  <h2 className="text-2xl font-bold">{user.name}</h2>
                   <div className="flex items-center gap-2 mt-1">
                     <Badge className={getRoleBadgeColor(user.role)}>
                       {getRoleLabel(user.role)}
@@ -287,7 +287,7 @@ type VerificationStatus = 'verified' | 'pending' | 'rejected' | 'not_started';
 
 export default function ProfilePage() {
   return (
-    <ProtectedRoute requiredRoles={['customer', 'dealer', 'admin']}>
+    <ProtectedRoute requiredRoles={['Administrador', 'Usuario', 'Taller']}>
       <ProfileContent />
     </ProtectedRoute>
   );

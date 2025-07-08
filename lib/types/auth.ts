@@ -1,15 +1,16 @@
 export interface User {
   id: string;
   email: string;
-  firstName: string;
-  lastName: string;
+  name:string;
   role: UserRole;
   avatar?: string;
   createdAt: string;
   lastLogin?: string;
+  profileStatus: ProfileStatus; // Nuevo campo
+  verificationProgress?: number; // Progreso de verificación 0-100
 }
 
-export type UserRole = 'admin' | 'dealer' | 'customer';
+export type UserRole = 'Administrador' | 'Usuario' | 'Taller' | 'SinRegistro';
 
 export interface LoginCredentials {
   email: string;
@@ -17,6 +18,7 @@ export interface LoginCredentials {
   capchat:string;
   rememberMe?: boolean;
 }
+export type ProfileStatus = 'logueado' | 'verificado' | 'visitante' | 'rechazado';
 
 export interface RegisterData {
   name:string;
@@ -27,9 +29,8 @@ export interface RegisterData {
 
 export interface AuthResponse {
   user: User;
-  token: string;
-  refreshToken: string;
-  expiresIn: number;
+  success: string;
+  error?: string;
 }
 
 export interface DecodedToken {
@@ -38,4 +39,18 @@ export interface DecodedToken {
   role: UserRole;
   iat: number;
   exp: number;
+}
+export interface VerificationRequirement {
+  requiresLogin?: boolean;
+  requiresAuth?: boolean;
+  requiredRoles?: UserRole[];
+  feature?: string;
+}
+
+export interface AccessResult {
+  hasAccess: boolean;
+  reason?: 'not_logged' | 'not_verified' | 'insufficient_role';
+  message?: string;
+  actionText?: string;
+  actionPath?: string;
 }

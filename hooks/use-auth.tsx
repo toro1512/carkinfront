@@ -83,16 +83,18 @@ export function AuthProvidermio({ children }: { children: React.ReactNode }) {
   const verifyEmail = async (name:string, email: string, code: string) => {
     setIsLoading(true)
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/verify-and-register`, {
+      
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/verify-and-register`, {
         method: "POST",
+        credentials: 'include',
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ name, email , code }),
       })
-
       const data = await response.json()
-      
+     console.log(data)
+ 
 
       if (response.ok) {
         setUser(data.user)

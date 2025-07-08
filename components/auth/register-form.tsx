@@ -30,7 +30,7 @@ export function RegisterForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
 
-  const { register } = useAuthStore()
+  const { preregister } = useAuthStore()
   const router = useRouter()
   const { toast } = useToast();
 
@@ -81,14 +81,19 @@ export function RegisterForm() {
       capchat: captchaToken as string,
       
     };
-      const success = await register(data)
+     const success = await preregister(data)
+
       if (success) {
         setSuccess(true)
+        toast({
+         title: "Correo Enviado",
+         description: "Se te ha enviado un codigo de verificacion a tu correo",
+         variant: "success",
+        });
         // Redirigir a la página de verificación
+        
         router.push(`/auth/verificaemail/${encodeURIComponent(email)}/${encodeURIComponent(name)}`);
       }
-
-
     } catch (error) {
       // El error ya se maneja en el store
       toast({

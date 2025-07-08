@@ -1,12 +1,12 @@
 import { create } from 'zustand';
-import { User, LoginCredentials, RegisterData, UserRole } from '@/lib/types/auth';
+import { User, LoginCredentials, RegisterData, UserRole,ProfileStatus, VerificationRequirement, AccessResult} from '@/lib/types/auth';
 import { authAPI } from '@/lib/api/auth';
-import { cookieUtils, isTokenExpired, decodeToken } from '@/lib/utils/auth';
+import { profileAPI, UpdateProfileData } from '@/lib/api/profile';
+
 
 interface AuthState {
   // Estado de autenticación
   user: User | null;
-  token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
@@ -14,23 +14,28 @@ interface AuthState {
   // Acciones
   login: (credentials: LoginCredentials) => Promise<boolean>;
   register: (data: RegisterData) => Promise<boolean>;
+  preregister: (data: RegisterData) => Promise<boolean>;
   logout: () => Promise<void>;
-  refreshToken: () => Promise<void>;
   clearError: () => void;
   initializeAuth: () => void;
+// Nuevas funciones para el sistema de verificación
+  checkAccess: (requirements: VerificationRequirement) => AccessResult;
+  canAccessFeature: (feature: string) => boolean;
+  getUserStatus: () => 'logueado' | 'rechazado' | 'verificado' | 'visitante';
+  getVerificationProgress: () => number;
   
-  // Funciones de utilidad
+  // Funciones de utilidad mejoradas
   hasRole: (role: UserRole) => boolean;
   hasAnyRole: (roles: UserRole[]) => boolean;
   isAdmin: () => boolean;
   isDealer: () => boolean;
   isCustomer: () => boolean;
+  isVerified: () => boolean;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   // Estado inicial
   user: null,
-  token: null,
   isAuthenticated: false,
   isLoading: false,
   error: null,
@@ -41,34 +46,36 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     
     try {
       const response = await authAPI.login(credentials);
+      if(response.success){
       
-      // Guardar en cookies
-      cookieUtils.setToken(response.token, credentials.rememberMe);
-      cookieUtils.setRefreshToken(response.refreshToken, credentials.rememberMe);
-      cookieUtils.setUserData(JSON.stringify(response.user), credentials.rememberMe);
-      console.log(response)
       set({
         user: response.user,
-        token: response.token,
         isAuthenticated: true,
         isLoading: false,
         error: null,
       });
-      
-      console.log(`✅ Usuario ${response.user.email} autenticado como ${response.user.role}`);
+     
       return true;
-      
+    } 
+    else{
+      set({
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+        error: null,
+      });
+      return false;
+    }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Error al iniciar sesión';
       set({
         user: null,
-        token: null,
         isAuthenticated: false,
         isLoading: false,
         error: errorMessage,
       });
       throw error;
-      return false;
+      
     }
   },
 
@@ -78,15 +85,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     
     try {
       const response = await authAPI.register(data);
-      
-      // Guardar en cookies
-      cookieUtils.setToken(response.token, false); // No recordar por defecto en registro
-      cookieUtils.setRefreshToken(response.refreshToken, false);
-      cookieUtils.setUserData(JSON.stringify(response.user), false);
-      
       set({
         user: response.user,
-        token: response.token,
         isAuthenticated: true,
         isLoading: false,
         error: null,
@@ -98,7 +98,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const errorMessage = error instanceof Error ? error.message : 'Error al registrarse';
       set({
         user: null,
-        token: null,
         isAuthenticated: false,
         isLoading: false,
         error: errorMessage,
@@ -107,6 +106,38 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       return false;
     }
   },
+  preregister: async (data: RegisterData) => {
+    set({ isLoading: true, error: null });
+   try {
+    const response = await authAPI.preregister(data);
+    
+    // Si el backend responde con éxito (200-299)
+    if (response.success) {
+      return true;
+    } 
+    // Si el backend responde con un 409 (Conflict) u otro error controlado
+    else if (response.error) {
+      throw new Error(response.error); // Lanza el mensaje de error del backend
+    } 
+    // Si no, asumimos que algo salió mal
+    else {
+      throw new Error("Error desconocido al registrar");
+    }
+  } catch (error) {
+    // Si es un error HTTP (ej. 409, 500), lo manejamos aquí
+    if (error instanceof Error) {
+      set({ error: error.message }); // Guardamos el error en el estado
+      throw error; // Lo relanzamos para que el componente lo capture
+    } else {
+      const unknownError = new Error("Error inesperado");
+      set({ error: unknownError.message });
+      throw unknownError;
+    }
+  } finally {
+    set({ isLoading: false }); // Siempre quitamos el loading
+  } 
+   
+  },
 
   // Cerrar sesión
   logout: async () => {
@@ -114,13 +145,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     
     try {
       await authAPI.logout();
-      
-      // Limpiar cookies
-      cookieUtils.clearAll();
-      
+    
       set({
         user: null,
-        token: null,
         isAuthenticated: false,
         isLoading: false,
         error: null,
@@ -132,10 +159,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       console.error('Error al cerrar sesión:', error);
       
       // Limpiar estado local incluso si hay error
-      cookieUtils.clearAll();
       set({
         user: null,
-        token: null,
         isAuthenticated: false,
         isLoading: false,
         error: null,
@@ -143,97 +168,150 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  // Refrescar token
-  refreshToken: async () => {
-    const refreshToken = cookieUtils.getRefreshToken();
+ 
+  // Actualizar perfil
+  updateProfile: async (data: UpdateProfileData) => {
+    const {  user } = get();
     
-    if (!refreshToken) {
-      throw new Error('No hay token de actualización disponible');
+    if (!user) {
+      throw new Error('No hay sesión activa');
     }
     
+    set({ isLoading: true, error: null });
+    
     try {
-      const response = await authAPI.refreshToken(refreshToken);
+      console.log('👤 Actualizando perfil...', data);
       
-      // Actualizar cookies
-      cookieUtils.setToken(response.token);
-      cookieUtils.setRefreshToken(response.refreshToken);
-      cookieUtils.setUserData(JSON.stringify(response.user));
+      // Simular actualización de perfil
+      const updatedUser = {
+        ...user,
+        ...data,
+        profileStatus: 'verified' as ProfileStatus,
+        role: 'customer' as UserRole, // Asignar rol después de verificación
+        verificationProgress: 100,
+      };
       
       set({
-        user: response.user,
-        token: response.token,
-        isAuthenticated: true,
+        user: updatedUser,
+        isLoading: false,
         error: null,
       });
       
-      console.log('✅ Token actualizado exitosamente');
+      console.log('✅ Perfil actualizado exitosamente - Usuario ahora verificado');
       
     } catch (error) {
-      console.error('Error al refrescar token:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Error al actualizar perfil';
+      console.error('❌ Error al actualizar perfil:', error);
       
-      // Si falla el refresh, cerrar sesión
-      get().logout();
+      set({
+        isLoading: false,
+        error: errorMessage,
+      });
       throw error;
     }
   },
-
-  // Limpiar error
+// Limpiar error
   clearError: () => {
     set({ error: null });
   },
 
   // Inicializar autenticación desde cookies
-  initializeAuth: () => {
-    const token = cookieUtils.getToken();
-    const userDataString = cookieUtils.getUserData();
-    
-    if (token && userDataString) {
-      try {
-        // Verificar si el token ha expirado
-        if (isTokenExpired(token)) {
-          console.log('Token expirado, intentando refrescar...');
-          get().refreshToken().catch(() => {
-            console.log('No se pudo refrescar el token, cerrando sesión...');
-            cookieUtils.clearAll();
-          });
-          return;
-        }
-        
-        const userData = JSON.parse(userDataString);
-        
-        set({
-          user: userData,
-          token,
-          isAuthenticated: true,
-          isLoading: false,
-          error: null,
-        });
-        
-        console.log(`✅ Sesión restaurada para ${userData.email}`);
-        
-      } catch (error) {
-        console.error('Error al inicializar autenticación:', error);
-        cookieUtils.clearAll();
-        set({
-          user: null,
-          token: null,
-          isAuthenticated: false,
-          isLoading: false,
-          error: null,
-        });
-      }
-    } else {
-      set({
-        user: null,
-        token: null,
-        isAuthenticated: false,
-        isLoading: false,
-        error: null,
-      });
-    }
+  initializeAuth: async () => {
+    try {
+    // Hacer petición para verificar sesión actual
+    const user = await authAPI.getCurrentUser();
+    set({
+      user,
+      isAuthenticated: true,
+    });
+  } catch (error) {
+    // No hay sesión válida
+    set({
+      user: null,
+      isAuthenticated: false,
+    });
+  }
   },
 
-  // Funciones de utilidad para roles
+  // NUEVAS FUNCIONES PARA EL SISTEMA DE VERIFICACIÓN
+
+  // Verificar acceso a funcionalidades
+  checkAccess: (requirements: VerificationRequirement): AccessResult => {
+    const { user, isAuthenticated } = get();
+    
+    // Si requiere login y no está logueado
+    if (requirements.requiresLogin && !isAuthenticated) {
+      return {
+        hasAccess: false,
+        reason: 'not_logged',
+        message: 'Necesitas iniciar sesión para acceder a esta funcionalidad',
+        actionText: 'Iniciar Sesión',
+        actionPath: '/auth/login',
+      };
+    }
+    
+    // Si requiere autenticación completa y no está verificado
+    if (requirements.requiresAuth && (!user || !user.role || user.profileStatus !== 'verificado')) {
+      return {
+        hasAccess: false,
+        reason: 'not_verified',
+        message: 'Necesitas completar tu verificación de perfil para acceder a esta funcionalidad',
+        actionText: 'Completar Verificación',
+        actionPath: '/profile/verification',
+      };
+    }
+    
+    // Si requiere roles específicos
+    if (requirements.requiredRoles && requirements.requiredRoles.length > 0) {
+      if (!user?.role || !requirements.requiredRoles.includes(user.role)) {
+        return {
+          hasAccess: false,
+          reason: 'insufficient_role',
+          message: `Esta funcionalidad requiere permisos de: ${requirements.requiredRoles.join(', ')}`,
+          actionText: 'Contactar Soporte',
+          actionPath: '/contact',
+        };
+      }
+    }
+    
+    return { hasAccess: true };
+  },
+
+  // Verificar acceso a funcionalidad específica
+  canAccessFeature: (feature: string): boolean => {
+    const featureRequirements: Record<string, VerificationRequirement> = {
+      'upload-car': { requiresAuth: true },
+      'auctions': { requiresAuth: true },
+      'create-auction': { requiresAuth: true },
+      'my-auctions': { requiresAuth: true },
+      'favorites': { requiresLogin: true },
+      'profile': { requiresLogin: true },
+      'admin': { requiresAuth: true, requiredRoles: ['Administrador'] },
+      'dealer-inventory': { requiresAuth: true, requiredRoles: ['Taller'] },
+    };
+    
+    const requirements = featureRequirements[feature];
+    if (!requirements) return true; // Funcionalidad pública
+    
+    return get().checkAccess(requirements).hasAccess;
+  },
+
+  // Obtener estado del usuario
+  getUserStatus: (): 'logueado' | 'verificado' | 'visitante' | 'rechazado'=> {
+    const { user, isAuthenticated } = get();
+    
+    if (!isAuthenticated || !user) return 'visitante';
+    if (!user.role || user.profileStatus !== 'verificado') return 'logueado';
+    return 'verificado';
+  },
+
+  // Obtener progreso de verificación
+  getVerificationProgress: (): number => {
+    const { user } = get();
+    return user?.verificationProgress || 0;
+  },
+
+  // Funciones de utilidad mejoradas
   hasRole: (role: UserRole) => {
     const { user } = get();
     return user?.role === role;
@@ -241,18 +319,23 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   hasAnyRole: (roles: UserRole[]) => {
     const { user } = get();
-    return user ? roles.includes(user.role) : false;
+    return user?.role ? roles.includes(user.role) : false;
   },
 
   isAdmin: () => {
-    return get().hasRole('admin');
+    return get().hasRole('Administrador');
   },
 
   isDealer: () => {
-    return get().hasRole('dealer');
+    return get().hasRole('Taller');
   },
 
   isCustomer: () => {
-    return get().hasRole('customer');
+    return get().hasRole('Usuario');
+  },
+
+  isVerified: () => {
+    const { user } = get();
+    return user?.profileStatus === 'verificado' && user?.role !== null;
   },
 }));

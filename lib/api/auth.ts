@@ -12,6 +12,7 @@ async function apiRequest<T>(
   const url = `${API_BASE_URL}${endpoint}`;
   
   const config: RequestInit = {
+    credentials: 'include', 
     headers: {
       'Content-Type': 'application/json',
       ...options.headers,
@@ -67,9 +68,7 @@ export const authAPI = {
 
   // Registrarse
   register: async (data: RegisterData): Promise<AuthResponse> => {
-    console.log('📝 Registrando nuevo usuario...', { email: data.email });
-    
-    const response = await apiRequest<AuthResponse>('/auth/register', {
+     const response = await apiRequest<AuthResponse>('/auth/register', {
       method: 'POST',
       body: JSON.stringify({
         name: data.name,
@@ -80,22 +79,29 @@ export const authAPI = {
       }),
     });
 
-    console.log('✅ Registro exitoso');
     return response;
   },
-
-  // Refrescar token
-  refreshToken: async (refreshToken: string): Promise<AuthResponse> => {
-    console.log('🔄 Refrescando token...');
-    
-    const response = await apiRequest<AuthResponse>('/auth/refresh', {
+  preregister: async (data: RegisterData): Promise<AuthResponse> => {
+     const response = await apiRequest<AuthResponse>('/auth/pre-register', {
       method: 'POST',
-      body: JSON.stringify({ refreshToken }),
+      body: JSON.stringify({
+        name: data.name,
+        capchat: data.capchat,
+        email: data.email,
+        password: data.password,
+        
+      }),
     });
 
-    console.log('✅ Token refrescado exitosamente');
     return response;
   },
+getCurrentUser: async (): Promise<User> => {
+    return await apiRequest<User>('/auth/me', {
+      method: 'GET',
+      // credentials: 'include' ya está en apiRequest
+    });
+  },
+ 
 
   // Cerrar sesión
   logout: async (token?: string): Promise<void> => {
@@ -159,12 +165,12 @@ export const authAPI = {
   },
 
   // Restablecer contraseña
-  resetPassword: async (token: string, newPassword: string): Promise<{ message: string }> => {
+  resetPassword: async (newPassword: string): Promise<{ message: string }> => {
     console.log('🔑 Restableciendo contraseña...');
     
     const response = await apiRequest<{ message: string }>('/auth/reset-password', {
       method: 'POST',
-      body: JSON.stringify({ token, newPassword }),
+      body: JSON.stringify({newPassword }),
     });
 
     console.log('✅ Contraseña restablecida exitosamente');

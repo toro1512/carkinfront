@@ -33,15 +33,13 @@ export default function RootLayout({
         <CarsProvider>
           <AuthProvider>
            <AuthProvidermio>
-           
-              <div className="flex flex-col min-h-screen">
+             <div className="flex flex-col min-h-screen">
                 <Header />
                 <main className="flex-grow">{children}</main>
                 <Footer />
               </div>
               <Toaster />
-           
-           </AuthProvidermio>
+            </AuthProvidermio>
           </AuthProvider>
          </CarsProvider>
         </ThemeProvider>

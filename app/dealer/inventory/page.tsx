@@ -139,7 +139,7 @@ function DealerInventoryContent() {
 
 export default function DealerInventoryPage() {
   return (
-    <ProtectedRoute requiredRoles={['dealer']}>
+    <ProtectedRoute requiredRoles={['Administrador']}>
       <DealerInventoryContent />
     </ProtectedRoute>
   );

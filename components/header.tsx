@@ -5,9 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
-import Image from 'next/image';
-import logo from '@/public/logoisocol.png';
-import logodos from '@/public/logonegr.png';
+import { Badge } from "@/components/ui/badge";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -24,17 +22,41 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Menu, User, Upload } from "lucide-react";
+import { Menu, Car, User, Upload, Gavel, Shield, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { UserMenu } from "@/components/auth/user-menu";
 
 export default function Header() {
   const pathname = usePathname();
-  const { isAuthenticated, user, isAdmin, isDealer } = useAuthStore();
+  const { 
+    isAuthenticated, 
+    user, 
+    getUserStatus, 
+    getVerificationProgress,
+    isAdmin, 
+    isDealer,
+    canAccessFeature 
+  } = useAuthStore();
+
+  const userStatus = getUserStatus();
+  const progress = getVerificationProgress();
+
+  // Función para mostrar indicador de verificación pendiente
+  const VerificationIndicator = () => {
+    if (userStatus === 'logged') {
+      return (
+        <Badge variant="secondary" className="ml-2 text-xs">
+          <AlertTriangle className="h-3 w-3 mr-1" />
+          Verificación Pendiente
+        </Badge>
+      );
+    }
+    return null;
+  };
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur-sm shadow-sm border-b">
+    <header className="sticky top-0 z-50 w-full bg-background border-b">
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-4">
           <Sheet>
@@ -45,7 +67,10 @@ export default function Header() {
             </SheetTrigger>
             <SheetContent side="left" className="w-[300px] sm:w-[400px]">
               <SheetHeader>
-                <SheetTitle>Navegación Principal</SheetTitle>
+                <SheetTitle className="flex items-center gap-2">
+                  Navegación Principal
+                  <VerificationIndicator />
+                </SheetTitle>
               </SheetHeader>
               <nav className="flex flex-col gap-4 mt-8">
                 <Link
@@ -67,8 +92,8 @@ export default function Header() {
                   Catálogo
                 </Link>
                 
-                {/* Opción de subir auto para usuarios autenticados */}
-                {isAuthenticated && (
+                {/* Opciones que requieren verificación */}
+                {canAccessFeature('upload-car') ? (
                   <Link
                     href="/upload-car"
                     className={cn(
@@ -78,35 +103,71 @@ export default function Header() {
                   >
                     Subir Mi Auto
                   </Link>
-                )}
-                
-                {/* Enlaces específicos por rol */}
-                {isAuthenticated && isAdmin() && (
+                ) : userStatus === 'logged' ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg font-medium text-muted-foreground">Subir Mi Auto</span>
+                    <Badge variant="outline" className="text-xs">
+                      <Shield className="h-3 w-3 mr-1" />
+                      Requiere Verificación
+                    </Badge>
+                  </div>
+                ) : null}
+
+                {/* Subastas */}
+                {canAccessFeature('auctions') ? (
                   <>
                     <Link
-                      href="/admin/dashboard"
+                      href="/auctions"
                       className={cn(
                         "text-lg font-medium transition-colors hover:text-primary",
-                        pathname.startsWith("/admin") ? "text-primary" : "text-muted-foreground"
+                        pathname.startsWith("/auctions") ? "text-primary" : "text-muted-foreground"
                       )}
                     >
-                      Panel de Admin
+                      Subastas
+                    </Link>
+                    <Link
+                      href="/my-auctions"
+                      className={cn(
+                        "text-lg font-medium transition-colors hover:text-primary",
+                        pathname === "/my-auctions" ? "text-primary" : "text-muted-foreground"
+                      )}
+                    >
+                      Mis Subastas
                     </Link>
                   </>
+                ) : userStatus === 'logged' ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg font-medium text-muted-foreground">Subastas</span>
+                    <Badge variant="outline" className="text-xs">
+                      <Shield className="h-3 w-3 mr-1" />
+                      Requiere Verificación
+                    </Badge>
+                  </div>
+                ) : null}
+                
+                {/* Enlaces específicos por rol - Solo para usuarios verificados */}
+                {userStatus === 'authenticated' && isAdmin() && (
+                  <Link
+                    href="/admin/dashboard"
+                    className={cn(
+                      "text-lg font-medium transition-colors hover:text-primary",
+                      pathname.startsWith("/admin") ? "text-primary" : "text-muted-foreground"
+                    )}
+                  >
+                    Panel de Admin
+                  </Link>
                 )}
                 
-                {isAuthenticated && isDealer() && (
-                  <>
-                    <Link
-                      href="/dealer/inventory"
-                      className={cn(
-                        "text-lg font-medium transition-colors hover:text-primary",
-                        pathname.startsWith("/dealer") ? "text-primary" : "text-muted-foreground"
-                      )}
-                    >
-                      Mi Inventario
-                    </Link>
-                  </>
+                {userStatus === 'authenticated' && isDealer() && (
+                  <Link
+                    href="/dealer/inventory"
+                    className={cn(
+                      "text-lg font-medium transition-colors hover:text-primary",
+                      pathname.startsWith("/dealer") ? "text-primary" : "text-muted-foreground"
+                    )}
+                  >
+                    Mi Inventario
+                  </Link>
                 )}
                 
                 <Link
@@ -127,45 +188,53 @@ export default function Header() {
                 >
                   Contacto
                 </Link>
+
+                {/* Indicador de verificación en móvil */}
+                {userStatus === 'logged' && (
+                  <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Shield className="h-4 w-4 text-orange-600" />
+                      <span className="text-sm font-medium text-orange-800">Verificación Pendiente</span>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-xs text-orange-700">
+                        <span>Progreso</span>
+                        <span>{progress}%</span>
+                      </div>
+                      <div className="w-full bg-orange-200 rounded-full h-2">
+                        <div 
+                          className="bg-orange-600 h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${progress}%` }}
+                        />
+                      </div>
+                    </div>
+                    <Button asChild size="sm" className="w-full mt-2">
+                      <Link href="/profile/verification">
+                        Completar Verificación
+                      </Link>
+                    </Button>
+                  </div>
+                )}
               </nav>
             </SheetContent>
           </Sheet>
 
           <Link href="/" className="hidden sm:flex items-center gap-2">
-            <div className="h-16 w-16  flex items-center justify-center">
-  <Image 
-    src={logo}
-    alt="Logo"
-    width={100}  // Ajusta según necesidad
-    height={100}
-    className="h-15 w-15 object-contain" // Mantienes las mismas dimensiones
-  />
-</div>
-            <span className="font-bold text-xl">CarsKing</span>
+            <Car className="h-6 w-6" />
+            <span className="font-bold text-xl">KingCars</span>
           </Link>
 
           {/* Logo móvil */}
           <Link href="/" className="sm:hidden flex items-center gap-1">
-            <div className="h-16 w-16 flex items-center justify-center">
-  <Image 
-    src={logo}
-    alt="Logo"
-    width={100}  // Ajusta según necesidad
-    height={100}
-    className="h-14 w-14 object-contain" // Mantienes las mismas dimensiones
-  />
-</div>
-            <span className="font-bold text-lg">CarsKing</span>
+            <Car className="h-5 w-5" />
+            <span className="font-bold text-lg">KingCars</span>
           </Link>
 
           <NavigationMenu className="hidden lg:flex">
             <NavigationMenuList>
               <NavigationMenuItem>
                 <Link href="/" legacyBehavior passHref>
-                  <NavigationMenuLink
-                    className={navigationMenuTriggerStyle()}
-                    active={pathname === "/"}
-                  >
+                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
                     Inicio
                   </NavigationMenuLink>
                 </Link>
@@ -180,15 +249,7 @@ export default function Header() {
                           className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
                           href="/catalog"
                         >
-                          <div className="h-12 w-12 bg-primary/10 rounded-full flex items-center justify-center">
-  <Image 
-    src={logo}
-    alt="Logo"
-    width={24}  // Ajusta según necesidad
-    height={24}
-    className="h-6 w-6 object-contain" // Mantienes las mismas dimensiones
-  />
-</div>
+                          <Car className="h-6 w-6" />
                           <div className="mb-2 mt-4 text-lg font-medium">
                             Todos los Vehículos
                           </div>
@@ -232,41 +293,89 @@ export default function Header() {
                 </NavigationMenuContent>
               </NavigationMenuItem>
               
-              {/* Opción de subir auto para usuarios autenticados */}
-              {isAuthenticated && (
+              {/* Subir auto - Solo si tiene acceso */}
+              {canAccessFeature('upload-car') && (
                 <NavigationMenuItem>
                   <Link href="/upload-car" legacyBehavior passHref>
-                    <NavigationMenuLink
-                      className={navigationMenuTriggerStyle()}
-                      active={pathname === "/upload-car"}
-                    >
+                    <NavigationMenuLink className={navigationMenuTriggerStyle()}>
                       Subir Auto
                     </NavigationMenuLink>
                   </Link>
                 </NavigationMenuItem>
               )}
+
+              {/* Menú de Subastas - Solo si tiene acceso */}
+              {canAccessFeature('auctions') && (
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger>Subastas</NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
+                      <li className="row-span-3">
+                        <NavigationMenuLink asChild>
+                          <a
+                            className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
+                            href="/auctions"
+                          >
+                            <Gavel className="h-6 w-6" />
+                            <div className="mb-2 mt-4 text-lg font-medium">
+                              Todas las Subastas
+                            </div>
+                            <p className="text-sm leading-tight text-muted-foreground">
+                              Explora subastas activas y encuentra ofertas únicas
+                            </p>
+                          </a>
+                        </NavigationMenuLink>
+                      </li>
+                      <li>
+                        <Link href="/my-auctions" legacyBehavior passHref>
+                          <NavigationMenuLink className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                            <div className="text-sm font-medium leading-none">Mis Subastas</div>
+                            <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                              Gestiona tus subastas activas y historial
+                            </p>
+                          </NavigationMenuLink>
+                        </Link>
+                      </li>
+                      <li>
+                        <Link href="/create-auction" legacyBehavior passHref>
+                          <NavigationMenuLink className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                            <div className="text-sm font-medium leading-none">Crear Subasta</div>
+                            <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                              Pon tu vehículo en subasta al mejor precio
+                            </p>
+                          </NavigationMenuLink>
+                        </Link>
+                      </li>
+                      <li>
+                        <Link href="/auctions/active" legacyBehavior passHref>
+                          <NavigationMenuLink className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                            <div className="text-sm font-medium leading-none">Subastas Activas</div>
+                            <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                              Participa en subastas que están en curso
+                            </p>
+                          </NavigationMenuLink>
+                        </Link>
+                      </li>
+                    </ul>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+              )}
               
-              {/* Enlaces específicos por rol en el menú principal */}
-              {isAuthenticated && isAdmin() && (
+              {/* Enlaces específicos por rol en el menú principal - Solo para verificados */}
+              {userStatus === 'authenticated' && isAdmin() && (
                 <NavigationMenuItem>
                   <Link href="/admin/dashboard" legacyBehavior passHref>
-                    <NavigationMenuLink
-                      className={navigationMenuTriggerStyle()}
-                      active={pathname.startsWith("/admin")}
-                    >
+                    <NavigationMenuLink className={navigationMenuTriggerStyle()}>
                       Administración
                     </NavigationMenuLink>
                   </Link>
                 </NavigationMenuItem>
               )}
               
-              {isAuthenticated && isDealer() && (
+              {userStatus === 'authenticated' && isDealer() && (
                 <NavigationMenuItem>
                   <Link href="/dealer/inventory" legacyBehavior passHref>
-                    <NavigationMenuLink
-                      className={navigationMenuTriggerStyle()}
-                      active={pathname.startsWith("/dealer")}
-                    >
+                    <NavigationMenuLink className={navigationMenuTriggerStyle()}>
                       Mi Inventario
                     </NavigationMenuLink>
                   </Link>
@@ -275,20 +384,14 @@ export default function Header() {
               
               <NavigationMenuItem>
                 <Link href="/about" legacyBehavior passHref>
-                  <NavigationMenuLink
-                    className={navigationMenuTriggerStyle()}
-                    active={pathname === "/about"}
-                  >
+                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
                     Acerca de
                   </NavigationMenuLink>
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
                 <Link href="/contact" legacyBehavior passHref>
-                  <NavigationMenuLink
-                    className={navigationMenuTriggerStyle()}
-                    active={pathname === "/contact"}
-                  >
+                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
                     Contacto
                   </NavigationMenuLink>
                 </Link>
@@ -298,6 +401,16 @@ export default function Header() {
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Indicador de verificación en desktop */}
+          {userStatus === 'logged' && (
+            <div className="hidden md:flex items-center gap-2 mr-2">
+              <Badge variant="secondary" className="text-xs">
+                <Shield className="h-3 w-3 mr-1" />
+                Verificación Pendiente
+              </Badge>
+            </div>
+          )}
+
           <ModeToggle />
           
           {/* Mostrar menú de usuario si está autenticado, sino mostrar botones de login/registro */}
