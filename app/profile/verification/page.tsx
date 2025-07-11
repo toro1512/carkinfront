@@ -120,8 +120,8 @@ function VerificationContent() {
   const form = useForm<VerificationValues>({
     resolver: zodResolver(verificationSchema),
     defaultValues: {
-      firstName: user?.firstName || '',
-      lastName: user?.lastName || '',
+      firstName: user?.name || '',
+      lastName: user?.name || '',
       email: user?.email || '',
       phone: '',
       dateOfBirth: '',
@@ -920,7 +920,7 @@ function VerificationContent() {
 
 export default function ProfileVerificationPage() {
   return (
-    <ProtectedRoute requiredRoles={['customer', 'dealer', 'admin']}>
+    <ProtectedRoute requiredRoles={['Taller', 'Usuario', 'Administrador']}>
       <VerificationContent />
     </ProtectedRoute>
   );

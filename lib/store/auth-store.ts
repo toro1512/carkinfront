@@ -7,7 +7,7 @@ import { profileAPI, UpdateProfileData } from '@/lib/api/profile';
 interface AuthState {
   // Estado de autenticación
   user: User | null;
-  isAuthenticated: boolean;
+  seLogueo: boolean;
   isLoading: boolean;
   error: string | null;
   
@@ -36,7 +36,7 @@ interface AuthState {
 export const useAuthStore = create<AuthState>((set, get) => ({
   // Estado inicial
   user: null,
-  isAuthenticated: false,
+  seLogueo: false,
   isLoading: false,
   error: null,
 
@@ -50,7 +50,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       
       set({
         user: response.user,
-        isAuthenticated: true,
+        seLogueo: true,
         isLoading: false,
         error: null,
       });
@@ -60,7 +60,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     else{
       set({
         user: null,
-        isAuthenticated: false,
+        seLogueo: false,
         isLoading: false,
         error: null,
       });
@@ -70,7 +70,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const errorMessage = error instanceof Error ? error.message : 'Error al iniciar sesión';
       set({
         user: null,
-        isAuthenticated: false,
+        seLogueo: false,
         isLoading: false,
         error: errorMessage,
       });
@@ -87,7 +87,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const response = await authAPI.register(data);
       set({
         user: response.user,
-        isAuthenticated: true,
+        seLogueo: true,
         isLoading: false,
         error: null,
       });
@@ -98,7 +98,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const errorMessage = error instanceof Error ? error.message : 'Error al registrarse';
       set({
         user: null,
-        isAuthenticated: false,
+        seLogueo: false,
         isLoading: false,
         error: errorMessage,
       });
@@ -148,7 +148,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     
       set({
         user: null,
-        isAuthenticated: false,
+        seLogueo: false,
         isLoading: false,
         error: null,
       });
@@ -161,7 +161,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // Limpiar estado local incluso si hay error
       set({
         user: null,
-        isAuthenticated: false,
+        seLogueo: false,
         isLoading: false,
         error: null,
       });
@@ -222,13 +222,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const user = await authAPI.getCurrentUser();
     set({
       user,
-      isAuthenticated: true,
+      seLogueo: true,
     });
   } catch (error) {
     // No hay sesión válida
     set({
       user: null,
-      isAuthenticated: false,
+      seLogueo: false,
     });
   }
   },
@@ -237,10 +237,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   // Verificar acceso a funcionalidades
   checkAccess: (requirements: VerificationRequirement): AccessResult => {
-    const { user, isAuthenticated } = get();
+    const { user, seLogueo } = get();
     
     // Si requiere login y no está logueado
-    if (requirements.requiresLogin && !isAuthenticated) {
+    if (requirements.requiresLogin && !seLogueo) {
       return {
         hasAccess: false,
         reason: 'not_logged',
@@ -298,9 +298,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   // Obtener estado del usuario
   getUserStatus: (): 'logueado' | 'verificado' | 'visitante' | 'rechazado'=> {
-    const { user, isAuthenticated } = get();
+    const { user, seLogueo } = get();
     
-    if (!isAuthenticated || !user) return 'visitante';
+    if (!seLogueo || !user) return 'visitante';
     if (!user.role || user.profileStatus !== 'verificado') return 'logueado';
     return 'verificado';
   },

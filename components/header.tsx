@@ -30,7 +30,7 @@ import { UserMenu } from "@/components/auth/user-menu";
 export default function Header() {
   const pathname = usePathname();
   const { 
-    isAuthenticated, 
+    seLogueo, 
     user, 
     getUserStatus, 
     getVerificationProgress,
@@ -44,7 +44,7 @@ export default function Header() {
 
   // Función para mostrar indicador de verificación pendiente
   const VerificationIndicator = () => {
-    if (userStatus === 'logged') {
+    if (userStatus === 'logueado') {
       return (
         <Badge variant="secondary" className="ml-2 text-xs">
           <AlertTriangle className="h-3 w-3 mr-1" />
@@ -103,7 +103,7 @@ export default function Header() {
                   >
                     Subir Mi Auto
                   </Link>
-                ) : userStatus === 'logged' ? (
+                ) : userStatus === 'logueado' ? (
                   <div className="flex items-center gap-2">
                     <span className="text-lg font-medium text-muted-foreground">Subir Mi Auto</span>
                     <Badge variant="outline" className="text-xs">
@@ -135,7 +135,7 @@ export default function Header() {
                       Mis Subastas
                     </Link>
                   </>
-                ) : userStatus === 'logged' ? (
+                ) : userStatus === 'logueado' ? (
                   <div className="flex items-center gap-2">
                     <span className="text-lg font-medium text-muted-foreground">Subastas</span>
                     <Badge variant="outline" className="text-xs">
@@ -146,7 +146,7 @@ export default function Header() {
                 ) : null}
                 
                 {/* Enlaces específicos por rol - Solo para usuarios verificados */}
-                {userStatus === 'authenticated' && isAdmin() && (
+                {userStatus === 'verificado' && isAdmin() && (
                   <Link
                     href="/admin/dashboard"
                     className={cn(
@@ -158,7 +158,7 @@ export default function Header() {
                   </Link>
                 )}
                 
-                {userStatus === 'authenticated' && isDealer() && (
+                {userStatus === 'verificado' && isDealer() && (
                   <Link
                     href="/dealer/inventory"
                     className={cn(
@@ -190,7 +190,7 @@ export default function Header() {
                 </Link>
 
                 {/* Indicador de verificación en móvil */}
-                {userStatus === 'logged' && (
+                {userStatus === 'logueado' && (
                   <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
                     <div className="flex items-center gap-2 mb-2">
                       <Shield className="h-4 w-4 text-orange-600" />
@@ -362,7 +362,7 @@ export default function Header() {
               )}
               
               {/* Enlaces específicos por rol en el menú principal - Solo para verificados */}
-              {userStatus === 'authenticated' && isAdmin() && (
+              {userStatus === 'verificado' && isAdmin() && (
                 <NavigationMenuItem>
                   <Link href="/admin/dashboard" legacyBehavior passHref>
                     <NavigationMenuLink className={navigationMenuTriggerStyle()}>
@@ -372,7 +372,7 @@ export default function Header() {
                 </NavigationMenuItem>
               )}
               
-              {userStatus === 'authenticated' && isDealer() && (
+              {userStatus === 'verificado' && isDealer() && (
                 <NavigationMenuItem>
                   <Link href="/dealer/inventory" legacyBehavior passHref>
                     <NavigationMenuLink className={navigationMenuTriggerStyle()}>
@@ -402,7 +402,7 @@ export default function Header() {
 
         <div className="flex items-center gap-2">
           {/* Indicador de verificación en desktop */}
-          {userStatus === 'logged' && (
+          {userStatus === 'logueado' && (
             <div className="hidden md:flex items-center gap-2 mr-2">
               <Badge variant="secondary" className="text-xs">
                 <Shield className="h-3 w-3 mr-1" />
@@ -414,7 +414,7 @@ export default function Header() {
           <ModeToggle />
           
           {/* Mostrar menú de usuario si está autenticado, sino mostrar botones de login/registro */}
-          {isAuthenticated ? (
+          {seLogueo? (
             <UserMenu />
           ) : (
             <>

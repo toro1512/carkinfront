@@ -79,21 +79,18 @@ export function UserMenu() {
   const getStatusInfo = () => {
     switch (userStatus) {
       case 'logueado':
-        console.log(userStatus)
         return {
           badge: <Badge variant="secondary" className="text-xs">Verificación Pendiente</Badge>,
           icon: <Clock className="h-3 w-3 text-orange-500" />,
           color: 'text-orange-600'
         };
       case 'verificado':
-        console.log(userStatus)
         return {
           badge: <Badge variant="default" className="text-xs">Verificado</Badge>,
           icon: <CheckCircle className="h-3 w-3 text-green-500" />,
           color: 'text-green-600'
         };
       default:
-        console.log(userStatus)
         return {
           badge: <Badge variant="outline" className="text-xs">Visitante</Badge>,
           icon: <User className="h-3 w-3 text-gray-500" />,

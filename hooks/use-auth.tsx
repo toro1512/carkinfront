@@ -93,9 +93,6 @@ export function AuthProvidermio({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({ name, email , code }),
       })
       const data = await response.json()
-     console.log(data)
- 
-
       if (response.ok) {
         setUser(data.user)
         return true

@@ -66,8 +66,6 @@ export function VerifiForm({ initialEmail = "", initialName = "" }: VerifiFormPr
     
         try {
           const success = await verifyEmail(name, email, code)
-          console.log(success)
-    
           if (success) {
              toast({
                title: "Bienvenido Carking",
