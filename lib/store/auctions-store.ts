@@ -32,7 +32,7 @@ interface AuctionsState {
   clearCurrentAuction: () => void;
 }
 
-export const useAuctionsStore = create<AuctionsState>((set, get) => ({
+export const useAuctionStore = create<AuctionsState>((set, get) => ({
   // Estado inicial
   userCars: [],
   userAuctions: [],

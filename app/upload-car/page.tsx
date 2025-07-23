@@ -65,7 +65,7 @@ function UploadCarContent() {
   const [allMandatoryDone, setAllMandatoryDone] = useState(false);
   const mandatoryTemplatesCount = PHOTO_TEMPLATES.filter(t => t.required).length;
 
-    ///////////////////// MANEJO Y LOGICA DAMARA//////////////////////////////////////////////////
+    ///////////////////// MANEJO Y LOGICA CAMARA//////////////////////////////////////////////////
 useEffect(() => {
     const takenMandatoryPhotos = capturedPhotos.filter(p => 
       PHOTO_TEMPLATES.some(mt => mt.id === p.templateId && mt.required)
@@ -179,52 +179,72 @@ useEffect(() => {
     
     const allFieldsFilled = requiredFields.every(field => field.trim() !== '');
     const vehicleDataExists = vehicleData !== null;
-   /*
-     crear variable para foto completas y revisar... esta pendiente de la validacion
+    const allPhotosTaken = mandatoryPhotosTakenCount === mandatoryTemplatesCount;
    
-   ojoooooooooooooooooooooooooooooooooooooooooooooooooooooo
-   
-   */
-    return allFieldsFilled && vehicleDataExists ;
+    return allFieldsFilled && vehicleDataExists && allPhotosTaken ;
   };
 
   // Preparar datos para envío
-  const prepareFormDataForUpload = () => {
-    const uploadData = new FormData();
-    
-    // Datos del formulario
-    uploadData.append('plate', formData.plate);
-    uploadData.append('price', formData.price);
-    uploadData.append('description', formData.description);
-    uploadData.append('condition', formData.condition);
-    uploadData.append('bodyType', formData.bodyType);
-    uploadData.append('location', formData.location);
-    
-    // Datos del vehículo
-    if (vehicleData) {
-      uploadData.append('vehicleData', JSON.stringify(vehicleData));
-    }
-    /*
-    pendienteeeeeeee para agregar y subir las fotos en formato correcto
+ const prepareFormDataForUpload = () => {
+  const uploadData = new FormData();
 
+  // 1. Datos del formulario (optimizado)
+  Object.entries(formData).forEach(([key, value]) => {
+    uploadData.append(key, value.toString()); // Asegura conversión a string
+  });
 
-    // Convertir fotos base64 a blobs y agregarlas
-    Object.entries(capturedPhotos).forEach(([photoId, dataUrl]) => {
-      // Convertir base64 a blob
-      const byteCharacters = atob(dataUrl.split(',')[1]);
-      const byteNumbers = new Array(byteCharacters.length);
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
-      }
-      const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], { type: 'image/jpeg' });
+  // 2. Datos del vehículo (mejorado)
+  if (vehicleData) {
+    uploadData.append(
+      'vehicleData', 
+      JSON.stringify({
+        ...vehicleData,
+        metadata: {
+          timestamp: new Date().toISOString(),
+          photosCount: capturedPhotos.length
+        }
+      })
+    );
+  }
+
+  // 3. Conversión y agregado de fotos (implementación completa)
+  capturedPhotos.forEach((photo) => {
+    try {
+      // Extraer la parte Base64 del Data URL
+      const base64Data = photo.imageUrl.split(',')[1];
       
-      uploadData.append(`photo_${photoId}`, blob, `${photoId}.jpg`);
-    });*/
-    
-    return uploadData;
-  };
+      // Convertir Base64 a Blob
+      const byteCharacters = atob(base64Data);
+      const byteArrays = new Uint8Array(byteCharacters.length);
+      
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteArrays[i] = byteCharacters.charCodeAt(i);
+      }
+      
+      const blob = new Blob([byteArrays], { type: 'image/jpeg' });
+      
+      // Obtener información de la plantilla para el nombre del archivo
+      const template = PHOTO_TEMPLATES.find(t => t.id === photo.templateId);
+      const photoName = template 
+        ? `photo_${template.label.toLowerCase().replace(/\s+/g, '_')}.jpg`
+        : `photo_${photo.templateId}.jpg`;
+      
+      // Agregar al FormData
+      console.log(photoName,"xlvklcvkcxvxcñlkvñxlñv",blob,"sfsdfsd",photoName)
+      uploadData.append(
+        'photos', // Usamos el mismo field name para todas las fotos
+        blob,
+        photoName
+      );
+      
+    } catch (error) {
+      console.error(`Error procesando foto ${photo.templateId}:`, error);
+      // Puedes agregar manejo de errores específico aquí
+    }
+  });
 
+  return uploadData;
+};
   const handleSubmit = async () => {
     if (!isFormValid()) {
       toast({
@@ -238,23 +258,22 @@ useEffect(() => {
     setIsLoading(true);
     try {
       const uploadData = prepareFormDataForUpload();
-      
+           
       // Aquí harías la llamada real a tu API
-      // const response = await fetch('/api/upload-car', {
-      //   method: 'POST',
-      //   body: uploadData
-      // });
+       const response = await fetch('/api/car', {
+         method: 'POST',
+         body: uploadData
+       });
       
       // Simular upload
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
+      if(response){
       toast({
         title: "¡Auto subido exitosamente!",
         description: "Tu vehículo ha sido publicado y está siendo revisado"
       });
       
       router.push('/catalog');
-      
+      }
     } catch (error) {
       toast({
         title: "Error al subir",
@@ -512,11 +531,11 @@ useEffect(() => {
                   {Object.values(formData).every(v => v.trim()) ? <CheckCircle className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
                   Información de venta completa
                 </div>
-                <div className={cn("flex items-center gap-2 text-sm", "text-muted-foreground"
-                )}>
-                  {<CheckCircle className="h-4 w-4" />}
-                  Todas las fotos capturadas ({}/{})
+                <div className={cn("flex items-center gap-2 text-sm", mandatoryPhotosTakenCount===mandatoryTemplatesCount ? "text-green-600" : "text-muted-foreground")}>
+                  {mandatoryPhotosTakenCount===mandatoryTemplatesCount ? <CheckCircle className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
+                  Todas las fotos capturadas ({mandatoryPhotosTakenCount}/{mandatoryTemplatesCount})
                 </div>
+                
               </div>
 
               <Button
