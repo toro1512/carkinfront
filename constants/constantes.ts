@@ -83,7 +83,7 @@ export const PHOTO_TEMPLATES: PhotoTemplate[] = [{
   },
   {
     id: 10,
-    label: 'Tablero/Odómetro',
+    label: 'Tablero/Odometro',
     description: 'Fotografía el tablero mostrando el kilometraje',
     referenceImage: 'https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg',
     required: true,

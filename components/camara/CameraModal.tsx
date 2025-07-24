@@ -39,7 +39,7 @@ const CameraModal: React.FC<CameraModalProps> = ({ isOpen, onClose, onCapture, t
       try {
         const mediaStream = await navigator.mediaDevices.getUserMedia({ 
           video: { 
-            facingMode: "user", // Prioritize front camera
+            facingMode: "environment", // Usa la cámara trasera
             width: { ideal: 1280 },
             height: { ideal: 720 }
           } 

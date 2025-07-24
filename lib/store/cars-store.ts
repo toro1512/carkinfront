@@ -75,8 +75,7 @@ export const useCarsStore = create<CarsStore>((set, get) => ({
   getFeaturedCars: () => {
   const { allCars } = get();
   return allCars
-    .filter(car => car.isNew || car.precio < 30000) // Ejemplo de criterios
-    .sort((a, b) => b.precio - a.precio) // Ordenar por precio descendente
+    .sort((a, b) => b.year - a.year) // Ordenar por precio descendente
     .slice(0, 4); // Tomar solo 4
 },
   getPaginatedCars: () => {
@@ -97,7 +96,6 @@ export const useCarsStore = create<CarsStore>((set, get) => ({
   const { allCars, itemsPerPage } = get();
     
   const updatedFilters = { ...get().filters, ...newFilters };
-  console.log(updatedFilters)
   const filtered = allCars.filter(car => {
     const matchesSearch = !updatedFilters.searchTerm || 
       `${car.marca} ${car.modelo} ${car.categoria}`.toLowerCase()
@@ -132,7 +130,6 @@ export const useCarsStore = create<CarsStore>((set, get) => ({
            matchesYear && matchesPrice && matchesBodyType && 
            matchesFuelType && matchesColor;
   });
-console.log(updatedFilters)
   set({
     filters: updatedFilters,
     filteredCars: filtered,

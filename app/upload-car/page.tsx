@@ -230,7 +230,6 @@ useEffect(() => {
         : `photo_${photo.templateId}.jpg`;
       
       // Agregar al FormData
-      console.log(photoName,"xlvklcvkcxvxcñlkvñxlñv",blob,"sfsdfsd",photoName)
       uploadData.append(
         'photos', // Usamos el mismo field name para todas las fotos
         blob,
@@ -260,9 +259,10 @@ useEffect(() => {
       const uploadData = prepareFormDataForUpload();
            
       // Aquí harías la llamada real a tu API
-       const response = await fetch('/api/car', {
+       const response = await fetch('https://0cjq2530-5000.use2.devtunnels.ms/api/cars', {
          method: 'POST',
-         body: uploadData
+         credentials: 'include',
+         body: uploadData,
        });
       
       // Simular upload
@@ -272,7 +272,7 @@ useEffect(() => {
         description: "Tu vehículo ha sido publicado y está siendo revisado"
       });
       
-      router.push('/catalog');
+      //router.push('/catalog');
       }
     } catch (error) {
       toast({
