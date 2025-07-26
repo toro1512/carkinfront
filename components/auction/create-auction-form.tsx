@@ -498,7 +498,7 @@ export function CreateAuctionForm({ currentUser, onSuccess, onCancel }: CreateAu
                         <li>Una vez iniciada, la subasta no se puede cancelar</li>
                         <li>El precio de reserva no será visible para los compradores</li>
                         <li>Si no se alcanza el precio de reserva, no estás obligado a vender</li>
-                        <li>CarAuction cobrará una comisión del 5% sobre la venta final</li>
+                        <li>Carking cobrará una comisión del 5% sobre la venta final</li>
                       </ul>
                     </AlertDescription>
                   </Alert>

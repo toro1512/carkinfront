@@ -34,6 +34,7 @@ interface CarsStore {
   getPaginatedCars: () => Carro[];
   getTotalPages: () => number;
   getFeaturedCars: () => Carro[];
+  addCar: (newCar: Carro) => void; 
 }
 
 export const useCarsStore = create<CarsStore>((set, get) => ({
@@ -75,8 +76,7 @@ export const useCarsStore = create<CarsStore>((set, get) => ({
   getFeaturedCars: () => {
   const { allCars } = get();
   return allCars
-    .sort((a, b) => b.year - a.year) // Ordenar por precio descendente
-    .slice(0, 4); // Tomar solo 4
+    
 },
   getPaginatedCars: () => {
     const { filteredCars, currentPage, itemsPerPage } = get();
@@ -156,5 +156,10 @@ export const useCarsStore = create<CarsStore>((set, get) => ({
       (page - 1) * state.itemsPerPage,
       page * state.itemsPerPage
     )
+  })),
+   addCar: (newCar: Carro) => set((state) => ({
+    allCars: [...state.allCars, newCar],
+    filteredCars: [...state.filteredCars, newCar],
+    visibleCars: [...state.visibleCars, newCar].slice(0, state.itemsPerPage)
   }))
 }));

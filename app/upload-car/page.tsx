@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Carro } from '@/types/carro'; 
+import { useCarsStore } from '@/lib/store/cars-store';
 import {
   Select,
   SelectContent,
@@ -56,6 +58,7 @@ interface VehicleData {
 function UploadCarContent() {
   const router = useRouter();
   const { toast } = useToast();
+  const addCar = useCarsStore((state) => state.addCar);
   const [isLoading, setIsLoading] = useState(false);
   const [plateLoading, setPlateLoading] = useState(false);
   // manejo camara 
@@ -122,6 +125,18 @@ useEffect(() => {
   const fetchVehicleData = async (plate: string): Promise<VehicleData> => {
     // Simular delay de API
     await new Promise(resolve => setTimeout(resolve, 2000));
+    const generateRandomVin = (): string => {
+    const chars = '0123456789ABCDEFGHJKLMNPRSTUVWXYZ';
+    let vin = '';
+    
+    // Un VIN válido tiene 17 caracteres
+    for (let i = 0; i < 17; i++) {
+      const randomIndex = Math.floor(Math.random() * chars.length);
+      vin += chars[randomIndex];
+    }
+    
+    return vin;
+  };
     
     // Datos simulados basados en la placa
     return {
@@ -130,7 +145,7 @@ useEffect(() => {
       model: 'Camry',
       year: 2020,
       color: 'Blanco',
-      vin: 'JTDKN3DU5L5123456',
+      vin: generateRandomVin(),
       engine: '2.5L 4-Cylinder',
       transmission: 'Automática',
       fuelType: 'Gasolina',
@@ -265,15 +280,52 @@ useEffect(() => {
          body: uploadData,
        });
       
-      // Simular upload
-      if(response){
-      toast({
-        title: "¡Auto subido exitosamente!",
-        description: "Tu vehículo ha sido publicado y está siendo revisado"
-      });
       
-      //router.push('/catalog');
+      if (response.ok) { 
+      const result = await response.json(); 
+      if (result.success) { 
+        const backendCarData = result.data[0]; // Accede al objeto dentro del array
+
+    // 2. Transformar los datos al formato de la interfaz Carro
+    const newCar: Carro = {
+      id: backendCarData.id, 
+      marca: backendCarData.marca, 
+      modelo: backendCarData.modelo,
+      year: backendCarData.year, 
+      precio: parseFloat(backendCarData.precio),
+      images: backendCarData.imagenes, 
+      placa: backendCarData.placa, 
+      kilometraje: backendCarData.kilometraje,
+      categoria: backendCarData.categoria,
+      colorExterior: backendCarData.colorExterior,
+      isNew: Boolean(backendCarData.isNew),
+      serial_motor: backendCarData.serial_motor,
+      imagen: backendCarData.imagen,
+      serial_carroceria: backendCarData.serial_carroceria,
+    }; 
+        addCar(newCar); 
+     toast({
+          title: "¡Auto subido exitosamente!",
+          description: "Tu vehículo ha sido publicado y está siendo revisado"
+        });
+         router.push('/catalog'); 
+      } else {
+        
+        throw new Error(result.message || "Error al procesar la solicitud en el servidor.");
       }
+    } else {
+      // La respuesta HTTP no fue exitosa (4xx, 5xx)
+      // Intenta leer el mensaje de error del backend si lo envía
+      let errorMessage = `Error en la solicitud: ${response.status} ${response.statusText}`;
+      try {
+        const errorResult = await response.json();
+        errorMessage = errorResult.message || errorMessage;
+      } catch (e) {
+        // Si no se puede parsear el JSON del error, usar el mensaje por defecto
+      }
+      throw new Error(errorMessage);
+    }
+    
     } catch (error) {
       toast({
         title: "Error al subir",
@@ -411,15 +463,14 @@ useEffect(() => {
                     <SelectValue placeholder="Seleccionar condición" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="new">Nuevo</SelectItem>
-                    <SelectItem value="excellent">Excelente</SelectItem>
-                    <SelectItem value="good">Bueno</SelectItem>
-                    <SelectItem value="fair">Regular</SelectItem>
+                    <SelectItem value="nuevo">Nuevo</SelectItem>
+                    <SelectItem value="usado">Usado</SelectItem>
+                    <SelectItem value="reparado">Reparado</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <Label htmlFor="bodyType">Tipo de Carrocería</Label>
+                <Label htmlFor="bodyType">Categorias</Label>
                 <Select value={formData.bodyType} onValueChange={(value) => setFormData(prev => ({ ...prev, bodyType: value }))}>
                   <SelectTrigger>
                     <SelectValue placeholder="Seleccionar tipo" />

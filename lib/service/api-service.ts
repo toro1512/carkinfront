@@ -2,7 +2,7 @@
 import { Auction, Bid, Car, CreateAuctionData } from '../types/auction';
 
 // Configuración de la API
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.carauction.com/v1';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ;
 const API_TIMEOUT = 5000; // 5 segundos timeout
 
 // Datos estáticos como fallback

@@ -150,7 +150,7 @@ export default function ContactPage() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <p className="font-semibold">info@carauction.com</p>
+                  <p className="font-semibold">info@carking.com</p>
                   <p className="text-sm text-gray-600">Respuesta en 24 horas</p>
                 </div>
               </CardContent>

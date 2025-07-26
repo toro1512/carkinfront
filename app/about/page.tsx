@@ -82,7 +82,7 @@ export default function AboutPage() {
   ];
 
   const milestones = [
-    { year: '2020', title: 'Fundación', description: 'Nace CarAuction con la visión de revolucionar las subastas de carros' },
+    { year: '2020', title: 'Fundación', description: 'Nace CarKINg con la visión de revolucionar las subastas de carros' },
     { year: '2021', title: 'Primera Subasta', description: 'Realizamos nuestra primera subasta exitosa con 50 participantes' },
     { year: '2022', title: 'Expansión', description: 'Llegamos a 5 ciudades principales y 1,000 usuarios registrados' },
     { year: '2023', title: 'Crecimiento', description: 'Superamos las 10,000 transacciones y $20M en ventas' },
@@ -268,7 +268,7 @@ export default function AboutPage() {
         <div>
           <div className="text-center mb-8">
             <h3 className="text-3xl font-bold text-gray-900 mb-4">Nuestro Equipo</h3>
-            <p className="text-lg text-gray-600">Las personas que hacen posible CarAuction</p>
+            <p className="text-lg text-gray-600">Las personas que hacen posible Carking</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
@@ -303,7 +303,7 @@ export default function AboutPage() {
           </div>
           <CardContent className="p-8 md:p-12">
             <div className="text-center space-y-6 relative z-10">
-              <h3 className="text-3xl font-bold">¿Por qué elegir CarAuction?</h3>
+              <h3 className="text-3xl font-bold">¿Por qué elegir CarKING?</h3>
               <p className="text-xl text-blue-100 max-w-3xl mx-auto">
                 Combinamos años de experiencia en el sector automotriz con tecnología de vanguardia 
                 para ofrecerte la mejor experiencia de compra y venta de vehículos.
