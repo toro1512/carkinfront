@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { Car, Facebook, Instagram, Twitter, Youtube } from "lucide-react";
+import Image from 'next/image';
+import logo from '@/public/logonegr.png';
 
 export default function Footer() {
   return (
@@ -8,9 +10,15 @@ export default function Footer() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <Car className="h-6 w-6" />
-              <span className="font-bold text-lg">CarsKing</span>
-            </div>
+  <Image 
+    src={logo} 
+    alt="CarsKing Logo" 
+    width={80}
+    height={80}
+    className="object-contain"
+  />
+  
+</div>
             <p className="text-muted-foreground mb-4">
               Descubre tu vehículo perfecto con nuestra selección premium de autos.
             </p>
@@ -76,11 +84,7 @@ export default function Footer() {
                   Contacto
                 </Link>
               </li>
-              <li>
-                <Link href="/blog" className="text-muted-foreground hover:text-primary">
-                  Blog
-                </Link>
-              </li>
+              
             </ul>
           </div>
           <div>

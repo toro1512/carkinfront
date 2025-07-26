@@ -46,7 +46,7 @@ const PhotoSlot: React.FC<PhotoSlotProps> = ({ template, capturedPhoto, onCaptur
                            alt={template.label}
                            className="w-full h-full object-cover"
                            width={500}  // Obligatorio: define el ancho máximo esperado
-                           height={300} // Obligatorio: define el alto máximo esperado
+                           height={500} // Obligatorio: define el alto máximo esperado
                            priority={true} // Opcional: si es una imagen crítica (ej. LCP)
                           />
                           {!capturedPhoto && (

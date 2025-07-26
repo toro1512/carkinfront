@@ -4,16 +4,6 @@ import { PhotoTemplate } from '@/types/camara';
 import Image from 'next/image';
 import { 
   Camera, 
-  Upload, 
-  CheckCircle, 
-  AlertCircle, 
-  Loader2, 
-  X,
-  RotateCcw,
-  Car,
-  Search,
-  Shield,
-  Settings,
   AlertCircleIcon
 } from 'lucide-react';
 

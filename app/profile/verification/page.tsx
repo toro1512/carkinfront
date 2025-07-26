@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ProtectedRoute } from '@/components/auth/protected-route';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import PhoneVerification from '@/components/verificacionsms/PhoneVerification';
 import Image from 'next/image';
 import {
   Select,
@@ -32,13 +33,9 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { 
-  Camera, 
-  Upload, 
   CheckCircle, 
   AlertCircle, 
   Loader2, 
-  X,
-  RotateCcw,
   User,
   MapPin,
   FileText,
@@ -50,13 +47,18 @@ import {
   Briefcase
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import CameraModal from '@/components/camara/CameraModal';
+import PhotoSlot from '@/components/camara/PhotoSlot';
 
-// Esquema de validación
+// Tipos y esquemas (igual que antes)
 const verificationSchema = z.object({
   firstName: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
   lastName: z.string().min(2, "El apellido debe tener al menos 2 caracteres"),
   email: z.string().email("Correo electrónico inválido"),
   phone: z.string().min(10, "El teléfono debe tener al menos 10 dígitos").regex(/^\+?[\d\s-()]+$/, "Formato de teléfono inválido"),
+  phoneVerified: z.boolean().optional().refine(val => val === true, {
+    message: "Debes verificar tu número de teléfono",
+  }),
   dateOfBirth: z.string().min(1, "La fecha de nacimiento es requerida"),
   documentType: z.string().min(1, "Selecciona un tipo de documento"),
   documentNumber: z.string().min(5, "El número de documento debe tener al menos 5 caracteres"),
@@ -71,7 +73,7 @@ const verificationSchema = z.object({
 
 type VerificationValues = z.infer<typeof verificationSchema>;
 
-// Tipos de documento disponibles
+// Tipos y datos constantes (igual que antes)
 const documentTypes = [
   { value: "cedula", label: "Cédula de Ciudadanía" },
   { value: "pasaporte", label: "Pasaporte" },
@@ -79,13 +81,11 @@ const documentTypes = [
   { value: "tarjeta_identidad", label: "Tarjeta de Identidad" },
 ];
 
-// Roles disponibles para solicitar
 const availableRoles = [
-  { value: "customer", label: "Cliente", description: "Comprar vehículos y acceder a servicios básicos" },
-  { value: "dealer", label: "Vendedor", description: "Vender vehículos y gestionar inventario" },
+  { value: "Taller", label: "Taller", description: "Manejo de Carros y Revision" },
+  { value: "Usuario", label: "Usuario", description: "Compra, Venta y Subasta de Carros" },
 ];
 
-// Ubicaciones predefinidas en el mapa
 const predefinedLocations = [
   { id: 1, name: "Sucursal Centro", lat: 19.4326, lng: -99.1332, address: "Av. Caracs , Centro, CDMX" },
   { id: 2, name: "Sucursal madrid", lat: 19.4267, lng: -99.1718, address: "Av. Presidente Masaryk 456, Polanco, ESPN" },
@@ -107,15 +107,11 @@ function VerificationContent() {
   const { toast } = useToast();
   const { user } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
-  const [isCapturing, setIsCapturing] = useState(false);
   const [documentPhoto, setDocumentPhoto] = useState<string | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
-  const [cameraPermission, setCameraPermission] = useState<'granted' | 'denied' | 'prompt' | 'checking'>('checking');
-  const [cameraError, setCameraError] = useState<string | null>(null);
-  
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
+  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
+  const [showPhoneVerification, setShowPhoneVerification] = useState(false);
+  const [showCameraModal, setShowCameraModal] = useState(false);
 
   const form = useForm<VerificationValues>({
     resolver: zodResolver(verificationSchema),
@@ -132,236 +128,33 @@ function VerificationContent() {
       state: '',
       zipCode: '',
       occupation: '',
-      requestedRole: 'customer',
+      requestedRole: 'Usuario',
       bio: '',
     },
   });
 
-  // Verificar permisos de cámara al cargar
-  useEffect(() => {
-    checkCameraPermissions();
-  }, []);
-
-  const checkCameraPermissions = async () => {
-    try {
-      if ('permissions' in navigator) {
-        const permission = await navigator.permissions.query({ name: 'camera' as PermissionName });
-        setCameraPermission(permission.state as 'granted' | 'denied' | 'prompt');
-        
-        permission.onchange = () => {
-          setCameraPermission(permission.state as 'granted' | 'denied' | 'prompt');
-        };
-      } else {
-        setCameraPermission('prompt');
-      }
-    } catch (error) {
-      console.error('Error checking camera permissions:', error);
-      setCameraPermission('prompt');
-    }
+  // Template para la foto del documento
+  const documentTemplate = {
+    id: 1,
+    label: "Documento de Identidad",
+    description: "Toma una foto clara de tu documento oficial",
+    required: true,
+    referenceImage: "/images/document-placeholder.jpg",
+    aspectRatio: "4/3",
+    guidanceImage: "/images/document-frame.png"
   };
 
-  const requestCameraPermission = async () => {
-    try {
-      setCameraError(null);
-      
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { 
-          facingMode: ['environment', 'user'],
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        }
-      });
-      
-      setCameraPermission('granted');
-      stream.getTracks().forEach(track => track.stop());
-      
-      toast({
-        title: "¡Permisos concedidos!",
-        description: "Ahora puedes tomar la foto de tu documento"
-      });
-      
-      return true;
-    } catch (error: any) {
-      console.error('Camera permission error:', error);
-      
-      if (error.name === 'NotAllowedError') {
-        setCameraPermission('denied');
-        setCameraError('Permisos de cámara denegados. Por favor, permite el acceso a la cámara en la configuración de tu navegador.');
-      } else {
-        setCameraError('Error al acceder a la cámara. Verifica que tu dispositivo tenga una cámara disponible.');
-      }
-      
-      return false;
-    }
-  };
-
-  const startCamera = async () => {
-    try {
-      setCameraError(null);
-      
-      if (cameraPermission === 'denied') {
-        setCameraError('Los permisos de cámara están denegados. Por favor, permite el acceso en la configuración de tu navegador.');
-        return;
-      }
-      
-      if (cameraPermission === 'prompt') {
-        const hasPermission = await requestCameraPermission();
-        if (!hasPermission) return;
-      }
-      
-      const constraints = [
-        { 
-          video: { 
-            facingMode: { exact: 'environment' },
-            width: { ideal: 1280 },
-            height: { ideal: 720 }
-          } 
-        },
-        { 
-          video: { 
-            facingMode: 'environment',
-            width: { ideal: 1280 },
-            height: { ideal: 720 }
-          } 
-        },
-        { 
-          video: { 
-            facingMode: 'user',
-            width: { ideal: 1280 },
-            height: { ideal: 720 }
-          } 
-        },
-        { 
-          video: {
-            width: { ideal: 1280 },
-            height: { ideal: 720 }
-          } 
-        }
-      ];
-
-      let stream: MediaStream | null = null;
-      let lastError: Error | null = null;
-
-      for (const constraint of constraints) {
-        try {
-          stream = await navigator.mediaDevices.getUserMedia(constraint);
-          break;
-        } catch (error: any) {
-          lastError = error;
-          continue;
-        }
-      }
-
-      if (!stream) {
-        throw lastError || new Error('No se pudo acceder a ninguna cámara');
-      }
-      
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        streamRef.current = stream;
-        
-        // Asegurar que el video se reproduzca
-        videoRef.current.onloadedmetadata = () => {
-          if (videoRef.current) {
-            videoRef.current.play().catch(console.error);
-          }
-        };
-      }
-      setIsCapturing(true);
-      setCameraPermission('granted');
-      
-    } catch (error: any) {
-      console.error('Camera start error:', error);
-      setCameraError('Error al iniciar la cámara. Verifica que no esté siendo usada por otra aplicación.');
-      
-      toast({
-        title: "Error de cámara",
-        description: "No se pudo acceder a la cámara",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const stopCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
-    }
-    if (videoRef.current) {
-      videoRef.current.srcObject = null;
-    }
-    setIsCapturing(false);
-    setCameraError(null);
-  };
-
-  const capturePhoto = () => {
-    if (!videoRef.current || !canvasRef.current) {
-      toast({
-        title: "Error",
-        description: "No se pudo acceder a la cámara o canvas",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    const context = canvas.getContext('2d');
-
-    if (!context) {
-      toast({
-        title: "Error",
-        description: "No se pudo obtener el contexto del canvas",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Asegurar que el video esté reproduciendo
-    if (video.readyState !== video.HAVE_ENOUGH_DATA) {
-      toast({
-        title: "Error",
-        description: "El video no está listo. Espera un momento e intenta de nuevo.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Configurar el canvas con las dimensiones del video
-    canvas.width = video.videoWidth || 640;
-    canvas.height = video.videoHeight || 480;
-
-    // Aplicar transformación para efecto espejo
-    context.save();
-    context.scale(-1, 1);
-    context.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
-    context.restore();
-
-    // Convertir a base64 con buena calidad
-    const photoDataUrl = canvas.toDataURL('image/jpeg', 0.9);
-    
-    // Verificar que la imagen se capturó correctamente
-    if (photoDataUrl === 'data:,') {
-      toast({
-        title: "Error",
-        description: "No se pudo capturar la imagen. Intenta de nuevo.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setDocumentPhoto(photoDataUrl);
-    stopCamera();
-
+  const handleCaptureDocument = (dataUrl: string) => {
+    setDocumentPhoto(dataUrl);
     toast({
       title: "¡Foto capturada!",
       description: "Documento fotografiado exitosamente"
     });
   };
 
-  const retakePhoto = () => {
+  const handleRetakeDocument = () => {
     setDocumentPhoto(null);
-    startCamera();
+    setShowCameraModal(true);
   };
 
   const handleLocationSelect = (location: Location) => {
@@ -373,6 +166,15 @@ function VerificationContent() {
   };
 
   const onSubmit = async (data: VerificationValues) => {
+    if (!isPhoneVerified) {
+      toast({
+        title: "Teléfono no verificado",
+        description: "Por favor verifica tu número de teléfono",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     if (!documentPhoto) {
       toast({
         title: "Foto requerida",
@@ -393,37 +195,101 @@ function VerificationContent() {
 
     setIsLoading(true);
     try {
-      // Simular envío de datos
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
-      // Aquí harías la llamada real a tu API
-      const verificationData = {
-        ...data,
-        documentPhoto,
-        selectedLocation,
-        userId: user?.id,
-        submittedAt: new Date().toISOString(),
-      };
-      
-      console.log('Datos de verificación:', verificationData);
-      
+      const formData = new FormData();
+      formData.append('firstName', data.firstName);
+formData.append('lastName', data.lastName);
+formData.append('email', data.email);
+formData.append('phone', data.phone);
+formData.append('dateOfBirth', data.dateOfBirth);
+formData.append('documentType', data.documentType);
+formData.append('documentNumber', data.documentNumber);
+formData.append('address', data.address);
+formData.append('city', data.city);
+formData.append('state', data.state);
+formData.append('zipCode', data.zipCode);
+formData.append('occupation', data.occupation);
+formData.append('bio', data.bio || '');
+formData.append('requestedRole', data.requestedRole);
+if (selectedLocation) {
+  formData.append('selectedLocation', JSON.stringify(selectedLocation));
+}
+      if (documentPhoto) { // Verificar que documentPhoto no sea null
+  try {
+    // Función auxiliar para convertir Data URL a Blob
+    const dataURLToBlob = (dataURL: string): Blob => {
+      const parts = dataURL.split(';base64,');
+      const contentType = parts[0].split(':')[1];
+      const raw = atob(parts[1]); // Decodificar base64
+      const rawLength = raw.length;
+      const uInt8Array = new Uint8Array(rawLength);
+
+      for (let i = 0; i < rawLength; ++i) {
+        uInt8Array[i] = raw.charCodeAt(i);
+      }
+
+      return new Blob([uInt8Array], { type: contentType });
+    };
+
+    const documentPhotoBlob = dataURLToBlob(documentPhoto);
+    // Ahora sí podemos pasar el Blob a FormData.append
+    formData.append('documentPhoto', documentPhotoBlob, 'document.jpg');
+  } catch (error) {
+    console.error("Error al convertir la imagen a Blob:", error);
+    toast({
+      title: "Error",
+      description: "No se pudo procesar la imagen del documento.",
+      variant: "destructive",
+    });
+    setIsLoading(false);
+    return; // Detener el envío si falla la conversión
+  }
+} else {
+  // Opcional: Manejar el caso donde documentPhoto es null aunque se haya validado antes
+  toast({
+    title: "Foto requerida",
+    description: "Debes tomar una foto de tu documento de identidad.",
+    variant: "destructive",
+  });
+  setIsLoading(false);
+  return;
+}
+
+      // --- Enviar solicitud al backend ---
+      const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'; // Ajusta en .env.local
+      console.log(BACKEND_URL,"sfsdf", formData)
+      const res = await fetch(`${BACKEND_URL}/profile/verify-profile`, {
+        method: 'POST',
+        body: formData, // Enviar FormData
+        credentials: 'include' // Si usas cookies en lugar de Bearer Token
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        console.error("Error del servidor:", res.status, errorData);
+        throw new Error(errorData.message || `Error al enviar solicitud: ${res.status} ${res.statusText}`);
+      }
+
+      const responseData = await res.json();
+      console.log('Solicitud de verificación enviada con éxito:', responseData);
+
       toast({
         title: "¡Solicitud enviada!",
-        description: "Tu solicitud de verificación ha sido enviada. Te contactaremos pronto.",
+        description: responseData.message || "Tu solicitud de verificación ha sido enviada. Te contactaremos pronto.",
       });
-      
-      router.push('/profile');
-      
-    } catch (error) {
+      router.push('/profile'); // O redirige a donde corresponda
+
+    } catch (error: any) {
+      console.error("Error al enviar la solicitud:", error);
       toast({
         title: "Error al enviar",
-        description: "Hubo un problema al enviar tu solicitud. Inténtalo de nuevo.",
+        description: error.message || "Hubo un problema al enviar tu solicitud. Inténtalo de nuevo.",
         variant: "destructive"
       });
     } finally {
       setIsLoading(false);
     }
   };
+
 
   return (
     <div className="container py-8 px-4 md:px-6 lg:px-8 max-w-4xl mx-auto">
@@ -498,13 +364,66 @@ function VerificationContent() {
                     <FormItem>
                       <FormLabel>Teléfono</FormLabel>
                       <FormControl>
-                        <Input placeholder="+52 55 1234 5678" {...field} />
+                        <div className="space-y-2">
+                          <Input 
+                            placeholder="+52 55 1234 5678" 
+                            {...field} 
+                            onChange={(e) => {
+                              field.onChange(e);
+                              setIsPhoneVerified(false);
+                            }}
+                            id="phone-input"
+                          />
+                          {!isPhoneVerified && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setShowPhoneVerification(true)}
+                              disabled={!field.value || field.value.length < 10}
+                            >
+                              Verificar número
+                            </Button>
+                          )}
+                          {isPhoneVerified && (
+                            <div className="flex items-center gap-2 text-green-600 text-sm">
+                              <CheckCircle className="h-4 w-4" />
+                              <span>Número verificado</span>
+                            </div>
+                          )}
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
+
+              {showPhoneVerification && !isPhoneVerified && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Verificación de Teléfono</CardTitle>
+                    <CardDescription>
+                      Enviaremos un SMS al numero que ves, para confirmar el numero
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <PhoneVerification
+                      phone={form.watch('phone')}
+                      onVerified={() => {
+                        setIsPhoneVerified(true);
+                        setShowPhoneVerification(false);
+                        form.setValue('phoneVerified', true);
+                      }}
+                      onPhoneChange={() => {
+                        setShowPhoneVerification(false);
+                        document.getElementById('phone-input')?.focus();
+                      }}
+                    />
+                  </CardContent>
+                </Card>
+              )}
+
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
@@ -555,7 +474,6 @@ function VerificationContent() {
             </CardContent>
           </Card>
 
-          {/* Documentación */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -607,91 +525,31 @@ function VerificationContent() {
                 />
               </div>
 
-              {/* Captura de foto del documento */}
+              {/* Foto del documento usando PhotoSlot */}
               <div>
                 <Label className="text-base font-medium">Foto del Documento</Label>
                 <p className="text-sm text-muted-foreground mb-4">
                   Toma una foto clara de tu documento de identidad
                 </p>
 
-                {cameraError && (
-                  <div className="mb-4 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-                    <div className="flex items-center gap-2 mb-2">
-                      <AlertCircle className="h-5 w-5 text-destructive" />
-                      <h3 className="font-semibold text-destructive">Error de Cámara</h3>
-                    </div>
-                    <p className="text-sm text-destructive">{cameraError}</p>
-                  </div>
-                )}
-
-                {isCapturing ? (
-                  <div className="space-y-4">
-                    <div className="relative bg-black rounded-lg overflow-hidden">
-                      <video
-                        ref={videoRef}
-                        autoPlay
-                        playsInline
-                        muted
-                        className="w-full h-64 md:h-80 object-cover"
-                        style={{ transform: 'scaleX(-1)' }} // Efecto espejo para mejor UX
-                      />
-                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <div className="border-2 border-white border-dashed rounded-lg w-3/4 h-3/4 flex items-center justify-center">
-                          <span className="text-white text-center px-4 bg-black/50 rounded p-2 text-sm">
-                            Coloca tu documento dentro del marco y presiona capturar
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex justify-center gap-4">
-                      <Button type="button" variant="outline" onClick={stopCamera}>
-                        <X className="h-4 w-4 mr-2" />
-                        Cancelar
-                      </Button>
-                      <Button type="button" onClick={capturePhoto} size="lg">
-                        <Camera className="h-4 w-4 mr-2" />
-                        Capturar Foto
-                      </Button>
-                    </div>
-                  </div>
-                ) : documentPhoto ? (
-                  <div className="space-y-4">
-                    <div className="relative">
-                      <Image
-  src={documentPhoto}
-  alt="Documento capturado"
-  width={800}  // Dimensiones reales del documento
-  height={600}
-  className="w-full h-64 object-contain rounded-lg border bg-muted"
-  quality={85} // Optimización de calidad
-  priority={false}
-/>
-                      <Badge className="absolute top-2 right-2 bg-green-600">
-                        <CheckCircle className="h-3 w-3 mr-1" />
-                        Capturado
-                      </Badge>
-                    </div>
-                    <Button type="button" variant="outline" onClick={retakePhoto} className="w-full">
-                      <RotateCcw className="h-4 w-4 mr-2" />
-                      Tomar Nueva Foto
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
-                    <Camera className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                    <p className="text-muted-foreground mb-4">
-                      No has tomado una foto del documento
-                    </p>
-                    <Button 
-                      type="button" 
-                      onClick={startCamera}
-                      disabled={cameraPermission === 'denied'}
-                    >
-                      <Camera className="h-4 w-4 mr-2" />
-                      Tomar Foto
-                    </Button>
-                  </div>
-                )}
+               <PhotoSlot
+                  template={{
+    id: 1,
+    label: "Documento de Identidad",
+    description: "Toma una foto clara de tu documento oficial",
+    required: true,
+    referenceImage: "/images/document-placeholder.jpg",
+    guidanceImage: "/images/document-frame.png",
+    aspectRatio: "1/1" // Valor literal exacto
+  }}
+                  capturedPhoto={documentPhoto ? { 
+                    templateId: documentTemplate.id, 
+                    imageUrl: documentPhoto 
+                  } : undefined}
+                  onCapture={() => setShowCameraModal(true)}
+                  onDelete={() => setDocumentPhoto(null)}
+                  onRetake={() => setShowCameraModal(true)}
+                />
               </div>
             </CardContent>
           </Card>
@@ -912,8 +770,21 @@ function VerificationContent() {
         </form>
       </Form>
 
-      {/* Canvas oculto para captura de fotos */}
-      <canvas ref={canvasRef} className="hidden" />
+      {/* CameraModal para capturar la foto del documento */}
+      <CameraModal
+        isOpen={showCameraModal}
+        onClose={() => setShowCameraModal(false)}
+        onCapture={handleCaptureDocument}
+        template={{
+    id: 1,
+    label: "Documento de Identidad",
+    description: "Toma una foto clara de tu documento oficial",
+    required: true,
+    referenceImage: "/images/document-placeholder.jpg",
+    guidanceImage: "/images/document-frame.png",
+    aspectRatio: "1/1" // Valor literal exacto
+  }}
+      />
     </div>
   );
 }

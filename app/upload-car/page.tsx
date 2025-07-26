@@ -259,7 +259,7 @@ useEffect(() => {
       const uploadData = prepareFormDataForUpload();
            
       // Aquí harías la llamada real a tu API
-       const response = await fetch('https://0cjq2530-5000.use2.devtunnels.ms/api/cars', {
+       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/cars`, {
          method: 'POST',
          credentials: 'include',
          body: uploadData,

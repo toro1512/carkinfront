@@ -98,28 +98,7 @@ export default function AboutPage() {
         }} />
       </div>
 
-      {/* Header */}
-      <div className="bg-white/80 backdrop-blur-sm border-b border-white/20 sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
-            <Link href="/">
-              <Button variant="ghost" size="sm" className="hover:bg-white/50">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Volver
-              </Button>
-            </Link>
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg">
-                <Users className="h-5 w-5 text-white" />
-              </div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                Nosotros
-              </h1>
-            </div>
-          </div>
-        </div>
-      </div>
-
+      
       <div className="container mx-auto px-4 py-8 space-y-12 relative z-10">
         {/* Hero Section */}
         <div className="text-center space-y-6 max-w-4xl mx-auto relative">

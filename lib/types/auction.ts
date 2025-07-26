@@ -1,47 +1,75 @@
-export interface Auction {
+export interface Car {
   id: string;
-  carId: number;
-  sellerId: string;
-  title: string;
+  make: string;
+  model: string;
+  year: number;
+  mileage: number;
+  color: string;
+  images: string[];
   description: string;
-  startingPrice: number;
-  currentPrice: number;
-  reservePrice?: number;
-  startDate: string;
-  endDate: string;
-  status: 'draft' | 'active' | 'ended' | 'cancelled';
-  bids: Bid[];
-  createdAt: string;
-  updatedAt: string;
+  condition: 'excellent' | 'good' | 'fair' | 'poor';
+  estimatedValue: number;
+  ownerId: string; // ID del propietario
+  isInAuction?: boolean; // Si ya está en subasta
 }
 
 export interface Bid {
   id: string;
   auctionId: string;
-  bidderId: string;
-  bidderName: string;
+  userId: string;
+  userName: string;
   amount: number;
-  timestamp: string;
-  isWinning: boolean;
+  timestamp: Date;
+  isWinner?: boolean;
+}
+
+export interface Auction {
+  id: string;
+  car: Car;
+  startPrice: number;
+  reservePrice?: number;
+  currentBid: number;
+  bidCount: number;
+  highestBidder?: string;
+  highestBidderName?: string;
+  startTime: Date;
+  endTime: Date;
+  status: 'upcoming' | 'active' | 'ended';
+  bids: Bid[];
+  watchers: number;
+  isWatched?: boolean;
+  sellerId: string; // ID del vendedor
+  sellerName: string; // Nombre del vendedor
 }
 
 export interface CreateAuctionData {
-  carId: number;
-  title: string;
-  description: string;
-  startingPrice: number;
+  carId: string;
+  startPrice: number;
   reservePrice?: number;
-  duration: number; // en horas
-  startDate: string;
-  termsAccepted: boolean;
+  duration: number; // Duración en horas
+  startImmediately: boolean;
+  scheduledStartTime?: Date;
 }
 
-export interface UserCar {
-  id: number;
-  make: string;
-  model: string;
-  year: number;
-  image: string;
-  isAvailableForAuction: boolean;
-  currentAuctionId?: string;
+export interface AuctionState {
+  auctions: Auction[];
+  currentAuction: Auction | null;
+  userBids: Bid[];
+  watchedAuctions: string[];
+  userAuctions: Auction[]; // Subastas del usuario
+  loading: boolean;
+  error: string | null;
+}
+
+export interface AuctionActions {
+  setAuctions: (auctions: Auction[]) => void;
+  setCurrentAuction: (auction: Auction | null) => void;
+  addBid: (auctionId: string, bid: Omit<Bid, 'id' | 'timestamp'>) => void;
+  watchAuction: (auctionId: string) => void;
+  unwatchAuction: (auctionId: string) => void;
+  updateAuctionStatus: (auctionId: string, status: Auction['status']) => void;
+  createAuction: (auctionData: CreateAuctionData, userId: string, userName: string) => Promise<void>;
+  getUserAuctions: (userId: string) => Auction[];
+  setLoading: (loading: boolean) => void;
+  setError: (error: string | null) => void;
 }

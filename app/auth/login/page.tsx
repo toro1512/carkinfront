@@ -26,6 +26,7 @@ import { useToast } from "@/hooks/use-toast";
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false);
   const [captchaToken, setCaptchaToken] = useState("")
   const [error, setError] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -37,6 +38,9 @@ export default function LoginPage() {
   
   const router = useRouter() 
   const emailIsValid = validateEmail(email)
+  const toggleShowPassword = () => {
+    setShowPassword(!showPassword);
+  };
 
 
   const handleCaptchaVerify = (token: string) => {
@@ -116,7 +120,7 @@ export default function LoginPage() {
                 height={100}
                 className="h-14 w-14 object-contain" // Mantienes las mismas dimensiones
               />
-           v </div>
+            </div>
             </div>
             <CardTitle className="text-2xl text-center">Iniciar Sesion</CardTitle>
             <CardDescription className="text-center">Ingresa tus credenciales para acceder a tu cuenta</CardDescription>
@@ -161,13 +165,23 @@ export default function LoginPage() {
                   ¿Olvidaste tu contraseña?
                 </Link>
               </div>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <div className="relative">
+        <Input
+          id="password"
+          type={showPassword ? 'text' : 'password'}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          className="pr-10" // Espacio para el ícono
+        />
+        <button
+          type="button"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground hover:text-primary"
+          onClick={toggleShowPassword}
+        >
+          {showPassword ? 'Ocultar' : 'Mostrar'}
+        </button>
+      </div>
             </div>
 
             <div className="space-y-2">
