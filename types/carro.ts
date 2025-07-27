@@ -11,7 +11,7 @@ export interface BackendCar {
   isNew: number;
   marca: string;
   modelo: string;
-  imagenes: Array<{ id: number; url_imagen: string }>;
+  imagenes: Array<{ id: string; url: string }>;
 }
 
 export interface Carro {

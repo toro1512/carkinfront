@@ -1,103 +1,51 @@
-import React from "react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
-import {
-  Calendar,
-  Fuel,
-  Gauge,
-  ArrowLeft,
-  Car,
-  Cog,
-  ShieldCheck,
-  Share2,
-  Printer,
-} from "lucide-react";
-import { Separator } from "@/components/ui/separator";
-import { CarGallery } from "@/components/car-gallery";
-import { CarDetailsProvider } from "@/components/providers/car-details-provider";
+'use client'; 
 
-// Generar parámetros estáticos para las rutas
-export async function generateStaticParams(): Promise<{ id: string }[]> {
-  // En una aplicación real, obtendrías todos los IDs de carros disponibles
-  // Por ahora, generamos IDs del 1 al 20 basado en nuestros datos de respaldo
-  return Array.from({ length: 20 }, (_, i) => ({
-    id: (i + 1).toString(),
-  }));
-}
+import { useCarsStore } from '@/lib/store/cars-store';
+import { CarGallery } from '@/components/car-detail/CarGallery';
+import Image from 'next/image';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Calendar, Gauge, Fuel, Cog, Share2, Printer, ArrowLeft, ShieldCheck } from 'lucide-react';
+import Link from 'next/link';
 
-interface CarDetailsPageProps {
-  params: { id: string };
-}
-
-export default function CarDetailsPage({ params }: CarDetailsPageProps) {
+function SimilarCarsSection() {
+  // Esta sección puede usar `getFeaturedCars` del store o lógica personalizada
+  // Por ahora, se deja como en tu ejemplo.
   return (
-    <CarDetailsProvider carId={params.id}>
-      <CarDetailsContent carId={params.id} />
-    </CarDetailsProvider>
+    <div className="bg-card rounded-lg shadow-sm p-6">
+      <h3 className="font-semibold text-lg mb-4">Vehículos Similares</h3>
+      <div className="space-y-4">
+        {[1, 2, 3].map((i) => (
+          <Link href={`/catalog/${i}`} key={i} className="block">
+            <div className="flex gap-3 hover:bg-muted/50 p-2 rounded-md transition-colors">
+              <div className="relative h-16 w-24 rounded overflow-hidden">
+                <Image
+                  src={`https://images.pexels.com/photos/${1545743 + i * 100}/pexels-photo-${1545743 + i * 100}.jpeg`}
+                  alt="Auto similar"
+                  className="w-full h-full object-cover"
+                   width={500}  // Obligatorio: define el ancho máximo esperado
+                   height={500} // Obligatorio: define el alto máximo esperado
+                   priority={true}
+                />
+              </div>
+              <div className="flex-grow">
+                <h4 className="font-medium text-sm">BMW M3 Competition</h4>
+                <p className="text-sm text-muted-foreground">2023 • 0 km</p>
+                <p className="font-semibold text-sm">$82,500</p>
+              </div>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </div>
   );
 }
 
-function CarDetailsContent({ carId }: { carId: string }) {
-  // Este componente será envuelto por el provider que maneja el estado
-  return <CarDetailsView carId={carId} />;
-}
-
-function CarDetailsView({ carId }: { carId: string }) {
-  // Simular obtención del carro desde el store global
-  // En una implementación real, usarías el store de Zustand aquí
-  const car = {
-    id: parseInt(carId),
-    make: "BMW",
-    model: "M4 Competition",
-    year: 2023,
-    price: 84700,
-    mileage: 0,
-    fuelType: "Gasolina",
-    bodyType: "Coupé",
-    image: "https://images.pexels.com/photos/1545743/pexels-photo-1545743.jpeg",
-    images: [
-      "https://images.pexels.com/photos/1545743/pexels-photo-1545743.jpeg",
-      "https://images.pexels.com/photos/1555753/pexels-photo-1555753.jpeg",
-      "https://images.pexels.com/photos/1565749/pexels-photo-1565749.jpeg",
-      "https://images.pexels.com/photos/1575759/pexels-photo-1575759.jpeg",
-      "https://images.pexels.com/photos/1585769/pexels-photo-1585769.jpeg",
-      "https://images.pexels.com/photos/1595779/pexels-photo-1595779.jpeg",
-      "https://images.pexels.com/photos/1605789/pexels-photo-1605789.jpeg",
-      "https://images.pexels.com/photos/1615799/pexels-photo-1615799.jpeg",
-      "https://images.pexels.com/photos/1625809/pexels-photo-1625809.jpeg",
-      "https://images.pexels.com/photos/1635819/pexels-photo-1635819.jpeg",
-    ],
-    isNew: true,
-    transmission: "Automática",
-    engine: "3.0L Twin-Turbo Inline-6",
-    horsepower: 503,
-    acceleration: 3.8,
-    drive: "Tracción integral",
-    exteriorColor: "Blanco Alpino",
-    interiorColor: "Negro/Rojo",
-    fuelEconomy: "16 ciudad / 23 carretera",
-    features: [
-      "Paquete M Sport",
-      "Paquete Premium",
-      "Paquete Ejecutivo",
-      "Acabado en Fibra de Carbono",
-      "Sistema de Sonido Harman Kardon",
-      "Apple CarPlay",
-      "Asientos Calefaccionados",
-      "Head-up Display",
-      "Asistente de Estacionamiento Plus",
-      "Asistente de Conducción Profesional",
-    ],
-    description: "El BMW M4 Competition combina un diseño impresionante con un rendimiento extraordinario, con un potente motor twin-turbo y manejo de precisión.",
-  };
+export default function CarDetailPage({ params }: { params: { id: string } }) {
   
+  const car = useCarsStore((state) => state.getCarById(params.id));
+
   if (!car) {
     return (
       <div className="container py-8 px-4 md:px-6 lg:px-8">
@@ -113,7 +61,7 @@ function CarDetailsView({ carId }: { carId: string }) {
       </div>
     );
   }
-  
+
   return (
     <div className="container py-8 px-4 md:px-6 lg:px-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
@@ -125,9 +73,9 @@ function CarDetailsView({ carId }: { carId: string }) {
             </Link>
           </Button>
           <h1 className="text-3xl font-bold">
-            {car.year} {car.make} {car.model}
+            {car.year} {car.marca} {car.modelo}
           </h1>
-          <p className="text-muted-foreground">{car.bodyType} • Stock #A{carId}12345</p>
+          <p className="text-muted-foreground">{car.categoria} • Stock #A{params.id}12345</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm">
@@ -144,9 +92,10 @@ function CarDetailsView({ carId }: { carId: string }) {
       {/* Galería de Imágenes del Carro */}
       <div className="mb-10">
         <CarGallery
-          images={car.images}
-          carName={`${car.make} ${car.model}`}
+          images={ car.images }
+          carName={`${car.marca} ${car.modelo}`}
           isNew={car.isNew}
+          primaryImageUrl={car.imagen}
         />
       </div>
 
@@ -156,11 +105,12 @@ function CarDetailsView({ carId }: { carId: string }) {
           <div className="bg-card rounded-lg shadow-sm p-6 mb-8">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6">
               <h2 className="text-3xl font-bold">
-                ${car.price.toLocaleString()}
+                ${car.precio?.toLocaleString()}
               </h2>
               <Button size="lg" className="mt-4 sm:mt-0">Contactar Distribuidor</Button>
             </div>
-
+            
+            {/* Información Principal */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-y-4 gap-x-6 text-sm mb-6">
               <div className="flex flex-col gap-1">
                 <span className="text-muted-foreground">Año</span>
@@ -173,27 +123,28 @@ function CarDetailsView({ carId }: { carId: string }) {
                 <span className="text-muted-foreground">Kilometraje</span>
                 <div className="flex items-center gap-1 font-medium">
                   <Gauge className="h-4 w-4 text-primary" />
-                  <span>{car.mileage.toLocaleString()} km</span>
+                  <span>{car.kilometraje?.toLocaleString() || '0'} km</span>
                 </div>
               </div>
               <div className="flex flex-col gap-1">
                 <span className="text-muted-foreground">Tipo de Combustible</span>
                 <div className="flex items-center gap-1 font-medium">
                   <Fuel className="h-4 w-4 text-primary" />
-                  <span>{car.fuelType}</span>
+                  <span>{car.kilometraje}</span>
                 </div>
               </div>
               <div className="flex flex-col gap-1">
                 <span className="text-muted-foreground">Transmisión</span>
                 <div className="flex items-center gap-1 font-medium">
                   <Cog className="h-4 w-4 text-primary" />
-                  <span>{car.transmission}</span>
+                  <span>{car.serial_carroceria}</span>
                 </div>
               </div>
             </div>
 
             <Separator className="my-6" />
 
+            {/* Pestañas */}
             <Tabs defaultValue="overview">
               <TabsList className="mb-4">
                 <TabsTrigger value="overview">Resumen</TabsTrigger>
@@ -204,9 +155,8 @@ function CarDetailsView({ carId }: { carId: string }) {
               <TabsContent value="overview" className="space-y-4">
                 <div>
                   <h3 className="font-semibold text-lg mb-2">Descripción</h3>
-                  <p className="text-muted-foreground">{car.description}</p>
+                  <p className="text-muted-foreground">{car.serial_carroceria}</p>
                 </div>
-                
                 <div>
                   <h3 className="font-semibold text-lg mb-2">Destacados</h3>
                   <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
@@ -236,77 +186,62 @@ function CarDetailsView({ carId }: { carId: string }) {
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-y-4 gap-x-6">
                     <div>
                       <p className="text-sm text-muted-foreground">Motor</p>
-                      <p className="font-medium">{car.engine}</p>
+                      <p className="font-medium">{car.serial_motor}</p>
                     </div>
-                    {car.horsepower && (
+                    {car.serial_carroceria && (
                       <div>
                         <p className="text-sm text-muted-foreground">Caballos de Fuerza</p>
-                        <p className="font-medium">{car.horsepower} hp</p>
+                        <p className="font-medium">{car.serial_carroceria} hp</p>
                       </div>
                     )}
-                    {car.acceleration && (
+                    {car.colorExterior && (
                       <div>
                         <p className="text-sm text-muted-foreground">0-100 km/h</p>
-                        <p className="font-medium">{car.acceleration} seg</p>
+                        <p className="font-medium">{car.colorExterior} seg</p>
                       </div>
                     )}
                     <div>
                       <p className="text-sm text-muted-foreground">Transmisión</p>
-                      <p className="font-medium">{car.transmission}</p>
+                      <p className="font-medium">{"manual"}</p>
                     </div>
-                    {car.drive && (
+                    {car.marca && (
                       <div>
                         <p className="text-sm text-muted-foreground">Tracción</p>
-                        <p className="font-medium">{car.drive}</p>
+                        <p className="font-medium">4X4</p>
                       </div>
                     )}
-                    {car.fuelEconomy && (
+                    {car.marca && (
                       <div>
                         <p className="text-sm text-muted-foreground">Economía de Combustible</p>
-                        <p className="font-medium">{car.fuelEconomy}</p>
+                        <p className="font-medium">Gasolina</p>
                       </div>
                     )}
                   </div>
                 </div>
-                
                 <Separator />
-                
                 <div>
                   <h3 className="font-semibold text-lg mb-3">Colores y Apariencia</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6">
                     <div>
                       <p className="text-sm text-muted-foreground">Color Exterior</p>
                       <div className="flex items-center gap-2 mt-1">
-                        <div className="w-5 h-5 rounded-full bg-neutral-100 border"></div>
-                        <p className="font-medium">{car.exteriorColor}</p>
+                        {/* Aquí puedes usar un componente de muestra de color real si tienes códigos hex */}
+                        <div className="w-5 h-5 rounded-full bg-gray-300 border"></div> 
+                        <p className="font-medium">{car.colorExterior}</p>
                       </div>
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Color Interior</p>
                       <div className="flex items-center gap-2 mt-1">
-                        <div className="w-5 h-5 rounded-full bg-neutral-900"></div>
-                        <p className="font-medium">{car.interiorColor}</p>
+                        <div className="w-5 h-5 rounded-full bg-gray-800"></div>
+                        <p className="font-medium">{car.colorExterior}</p>
                       </div>
                     </div>
                   </div>
                 </div>
               </TabsContent>
               
-              <TabsContent value="features">
-                <h3 className="font-semibold text-lg mb-3">Características Principales</h3>
-                {car.features && car.features.length > 0 ? (
-                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
-                    {car.features.map((feature, index) => (
-                      <li key={index} className="flex items-center gap-2">
-                        <span className="h-1.5 w-1.5 rounded-full bg-primary flex-shrink-0"></span>
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-muted-foreground">No hay características específicas disponibles para este vehículo.</p>
-                )}
-              </TabsContent>
+              
             </Tabs>
           </div>
         </div>
@@ -324,29 +259,7 @@ function CarDetailsView({ carId }: { carId: string }) {
             </div>
           </div>
           
-          <div className="bg-card rounded-lg shadow-sm p-6">
-            <h3 className="font-semibold text-lg mb-4">Vehículos Similares</h3>
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <Link href={`/catalog/${i}`} key={i} className="block">
-                  <div className="flex gap-3 hover:bg-muted/50 p-2 rounded-md transition-colors">
-                    <div className="relative h-16 w-24 rounded overflow-hidden">
-                      <img
-                        src={`https://images.pexels.com/photos/${1545743 + i * 100}/pexels-photo-${1545743 + i * 100}.jpeg`}
-                        alt="Auto similar"
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div className="flex-grow">
-                      <h4 className="font-medium text-sm">BMW M3 Competition</h4>
-                      <p className="text-sm text-muted-foreground">2023 • 0 km</p>
-                      <p className="font-semibold text-sm">$82,500</p>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
+          <SimilarCarsSection /> {/* Componente separado o inline */}
         </div>
       </div>
     </div>

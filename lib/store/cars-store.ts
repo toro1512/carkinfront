@@ -35,6 +35,7 @@ interface CarsStore {
   getTotalPages: () => number;
   getFeaturedCars: () => Carro[];
   addCar: (newCar: Carro) => void; 
+  getCarById: (id: string) => Carro | undefined;
 }
 
 export const useCarsStore = create<CarsStore>((set, get) => ({
@@ -89,6 +90,10 @@ export const useCarsStore = create<CarsStore>((set, get) => ({
   getTotalPages: () => {
     const { filteredCars, itemsPerPage } = get();
     return Math.ceil(filteredCars.length / itemsPerPage);
+  },
+  getCarById: (id: string) => { 
+    const { allCars } = get();
+      return allCars.find(car => car.id === id); 
   },
 
   // Aplicar filtros

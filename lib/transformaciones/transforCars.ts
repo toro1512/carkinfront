@@ -9,8 +9,8 @@ export function transformBackendToFrontend(backendCars: BackendCar[]): Carro[] {
     year: backendCar.year,
     precio: parseFloat(backendCar.precio),
     images: backendCar.imagenes.map(img => ({
-      id: img.id.toString(),
-      url: img.url_imagen
+      id: img.id,
+      url: img.url
     })),
     // Campos adicionales que podrías necesitar
     placa: backendCar.placa,
