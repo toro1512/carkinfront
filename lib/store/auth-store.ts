@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { User, LoginCredentials, RegisterData, UserRole,ProfileStatus, VerificationRequirement, AccessResult} from '@/lib/types/auth';
+import { User, LoginCredentials, VerifyCredentials, ResendCredentials, RegisterData, UserRole,ProfileStatus, VerificationRequirement, AccessResult} from '@/lib/types/auth';
 import { authAPI } from '@/lib/api/auth';
 import { profileAPI, UpdateProfileData } from '@/lib/api/profile';
 
@@ -15,16 +15,16 @@ interface AuthState {
   login: (credentials: LoginCredentials) => Promise<boolean>;
   register: (data: RegisterData) => Promise<boolean>;
   preregister: (data: RegisterData) => Promise<boolean>;
+  verifyEmail: (credentials: VerifyCredentials) => Promise<boolean>;
+  resendVerificationCode: (credentials: ResendCredentials) => Promise<boolean>;
+  
   logout: () => Promise<void>;
   clearError: () => void;
   initializeAuth: () => void;
-// Nuevas funciones para el sistema de verificación
   checkAccess: (requirements: VerificationRequirement) => AccessResult;
   canAccessFeature: (feature: string) => boolean;
   getUserStatus: () => 'logueado' | 'rechazado' | 'verificado' | 'visitante';
   getVerificationProgress: () => number;
-  
-  // Funciones de utilidad mejoradas
   hasRole: (role: UserRole) => boolean;
   hasAnyRole: (roles: UserRole[]) => boolean;
   isAdmin: () => boolean;
@@ -78,6 +78,66 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       
     }
   },
+  verifyEmail: async (credentials: VerifyCredentials) => {
+    set({ isLoading: true, error: null });
+    
+    try {
+      const response = await authAPI.verifyEmail(credentials);
+      if(response.success){
+      
+      set({
+        user: response.user,
+        seLogueo: true,
+        isLoading: false,
+        error: null,
+      });
+     
+      return true;
+    } 
+    else{
+      set({
+        user: null,
+        seLogueo: false,
+        isLoading: false,
+        error: null,
+      });
+      return false;
+    }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Error al iniciar sesión';
+      set({
+        user: null,
+        seLogueo: false,
+        isLoading: false,
+        error: errorMessage,
+      });
+      throw error;
+      
+    }
+  },
+  resendVerificationCode: async (credentials: ResendCredentials) => {
+    set({ isLoading: true, error: null });
+    
+    try {
+      const response = await authAPI.resendVerificationCode(credentials);
+      set({ isLoading: false });
+      if(response.success){
+            return true;
+        } 
+      else{
+            set({ error: response.error || 'Error al reenviar código' });
+            return false;
+       }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Error en el reenvio';
+      set({
+         isLoading: false,
+         error: errorMessage,
+      });
+      throw error;
+      
+    }
+  },
 
   // Registrarse
   register: async (data: RegisterData) => {
@@ -124,17 +184,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       throw new Error("Error desconocido al registrar");
     }
   } catch (error) {
-    // Si es un error HTTP (ej. 409, 500), lo manejamos aquí
+    
     if (error instanceof Error) {
-      set({ error: error.message }); // Guardamos el error en el estado
-      throw error; // Lo relanzamos para que el componente lo capture
+      set({ error: error.message }); 
+      throw error; 
     } else {
       const unknownError = new Error("Error inesperado");
       set({ error: unknownError.message });
       throw unknownError;
     }
   } finally {
-    set({ isLoading: false }); // Siempre quitamos el loading
+    set({ isLoading: false }); 
   } 
    
   },

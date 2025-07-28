@@ -4,7 +4,6 @@ import { Inter } from 'next/font/google';
 import { ThemeProvider } from '@/components/theme-provider';
 import { AuthProvider } from '@/components/providers/auth-provider';
 import  CarsProvider  from '@/components/providers/cars-provider';
-import { AuthProvidermio } from "@/hooks/use-auth"
 import Header from '@/components/header';
 import Footer from '@/components/footer';
 import { Toaster } from '@/components/ui/toaster';
@@ -32,15 +31,13 @@ export default function RootLayout({
         >
         <CarsProvider>
           <AuthProvider>
-           <AuthProvidermio>
-             <div className="flex flex-col min-h-screen">
+              <div className="flex flex-col min-h-screen">
                 <Header />
                 <main className="flex-grow">{children}</main>
                 <Footer />
               </div>
               <Toaster />
-            </AuthProvidermio>
-          </AuthProvider>
+           </AuthProvider>
          </CarsProvider>
         </ThemeProvider>
       </body>

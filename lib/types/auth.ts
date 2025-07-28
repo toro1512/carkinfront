@@ -18,6 +18,15 @@ export interface LoginCredentials {
   capchat:string;
   rememberMe?: boolean;
 }
+export interface VerifyCredentials {
+  email: string;
+  name: string;
+  code:string;
+}
+export interface ResendCredentials {
+  email: string;
+  name: string;
+}
 export type ProfileStatus = 'logueado' | 'verificado' | 'visitante' | 'rechazado';
 
 export interface RegisterData {

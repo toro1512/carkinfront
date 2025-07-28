@@ -1,5 +1,5 @@
 import { Captcha } from '@/components/auth/captcha';
-import { LoginCredentials, RegisterData, AuthResponse, User } from '@/lib/types/auth';
+import { LoginCredentials, RegisterData, AuthResponse, User, VerifyCredentials, ResendCredentials } from '@/lib/types/auth';
 
 // Configuración de la API
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
@@ -59,6 +59,37 @@ export const authAPI = {
         password: credentials.password,
         captcha: credentials.capchat,
         rememberMe: credentials.rememberMe,
+      }),
+    });
+
+    console.log('✅ Inicio de sesión exitoso');
+    return response;
+  },
+  //VerifyEmail
+  verifyEmail: async (credentials: VerifyCredentials): Promise<AuthResponse> => {
+    console.log('🔐 Iniciando sesión...', { email: credentials.email });
+    
+    const response = await apiRequest<AuthResponse>('/auth/verify-and-register', {
+      method: 'POST',
+      body: JSON.stringify({
+        email: credentials.email,
+        name: credentials.name,
+        code: credentials.code,
+      }),
+    });
+
+    console.log('✅ envio de correo correcto');
+    return response;
+  },
+  //Resendcode
+   resendVerificationCode: async (credentials: ResendCredentials): Promise<AuthResponse> => {
+    console.log('🔐 Iniciando sesión...', { email: credentials.email });
+    
+    const response = await apiRequest<AuthResponse>('/auth/resend-verification', {
+      method: 'POST',
+      body: JSON.stringify({
+        email: credentials.email,
+        name: credentials.name,
       }),
     });
 
