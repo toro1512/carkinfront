@@ -298,7 +298,7 @@ export default function Header() {
                       </NavigationMenuLink>
                     </li>
                     <li>
-                      <Link href="/catalog/new" legacyBehavior passHref>
+                      <Link href="/catalog/category/nuevo" legacyBehavior passHref>
                         <NavigationMenuLink className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
                           <div className="text-sm font-medium leading-none">Autos Nuevos</div>
                           <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
@@ -308,7 +308,7 @@ export default function Header() {
                       </Link>
                     </li>
                     <li>
-                      <Link href="/catalog/used" legacyBehavior passHref>
+                      <Link href="/catalog/category/usado" legacyBehavior passHref>
                         <NavigationMenuLink className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
                           <div className="text-sm font-medium leading-none">Autos Usados</div>
                           <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
@@ -318,7 +318,7 @@ export default function Header() {
                       </Link>
                     </li>
                     <li>
-                      <Link href="/catalog/luxury" legacyBehavior passHref>
+                      <Link href="/catalog/category/reparado"legacyBehavior passHref>
                         <NavigationMenuLink className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
                           <div className="text-sm font-medium leading-none">Colección de Lujo</div>
                           <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">

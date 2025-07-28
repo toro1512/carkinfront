@@ -73,7 +73,7 @@ export function VerifiForm({ initialEmail = "", initialName = "" }: VerifiFormPr
                variant: "success",
               });
             // Redirigir al inicio después de la verificación exitosa
-            router.push("/")
+            router.push("/auth/login")
           } else {
             setError("Código de verificación incorrecto. Por favor, inténtalo de nuevo.")
           }

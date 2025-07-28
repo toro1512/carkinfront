@@ -10,7 +10,7 @@ export async function getAllCars(): Promise<BackendCar[]> {
  
 const maxRetries = 2;
   let lastError: Error | null = null;
-
+ console.log("se llama.............................................. ");
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       console.log(`Intento ${attempt} de obtener todos los carros del backend...`);

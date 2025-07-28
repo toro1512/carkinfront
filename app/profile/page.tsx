@@ -59,11 +59,7 @@ function ProfileContent() {
     }
   };
 
-  // Simular estado de verificación (en una app real vendría del backend)
-type VerificationStatus = 'verified' | 'pending' | 'rejected' | 'not_started';
-
-
-
+ 
   return (
     <div className="container py-8 px-4 md:px-6 lg:px-8 max-w-4xl mx-auto">
       <div className="mb-8">
@@ -222,12 +218,6 @@ type VerificationStatus = 'verified' | 'pending' | 'rejected' | 'not_started';
                 <Link href="/profile/edit">
                   <Edit className="h-4 w-4 mr-2" />
                   Editar Perfil
-                </Link>
-              </Button>
-              <Button variant="outline" className="w-full justify-start" asChild>
-                <Link href="/profile/verification">
-                  <Shield className="h-4 w-4 mr-2" />
-                  Verificar Cuenta
                 </Link>
               </Button>
               <Button variant="outline" className="w-full justify-start" asChild>

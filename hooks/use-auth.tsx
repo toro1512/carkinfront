@@ -86,7 +86,6 @@ export function AuthProvidermio({ children }: { children: React.ReactNode }) {
       
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/verify-and-register`, {
         method: "POST",
-        credentials: 'include',
         headers: {
           "Content-Type": "application/json",
         },

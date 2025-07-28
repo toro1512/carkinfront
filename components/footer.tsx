@@ -91,27 +91,27 @@ export default function Footer() {
             <h3 className="font-semibold text-base mb-4">Categorías de Vehículos</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/catalog/sedan" className="text-muted-foreground hover:text-primary">
+                <Link href="/catalog/category/sedan" className="text-muted-foreground hover:text-primary">
                   Sedanes
                 </Link>
               </li>
               <li>
-                <Link href="/catalog/suv" className="text-muted-foreground hover:text-primary">
+                <Link href="/catalog/category/SUV" className="text-muted-foreground hover:text-primary">
                   SUVs
                 </Link>
               </li>
               <li>
-                <Link href="/catalog/truck" className="text-muted-foreground hover:text-primary">
+                <Link href="/catalog/category/truck" className="text-muted-foreground hover:text-primary">
                   Camionetas
                 </Link>
               </li>
               <li>
-                <Link href="/catalog/luxury" className="text-muted-foreground hover:text-primary">
+                <Link href="/catalog/category/coupe" className="text-muted-foreground hover:text-primary">
                   Lujo
                 </Link>
               </li>
               <li>
-                <Link href="/catalog/electric" className="text-muted-foreground hover:text-primary">
+                <Link href="/catalog/category/pickup" className="text-muted-foreground hover:text-primary">
                   Eléctricos
                 </Link>
               </li>
